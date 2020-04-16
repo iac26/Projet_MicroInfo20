@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
   55 0018 00000000 		.word	.LC0
   56              		.cfi_endproc
   57              	.LFE112:
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 2
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 2
 
 
   58              		.size	_unhandled_exception, .-_unhandled_exception
@@ -118,7 +118,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  112              		.thumb_set Vector154,_unhandled_exception
  113              		.weak	Vector150
  114              		.thumb_set Vector150,_unhandled_exception
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 3
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 3
 
 
  115              		.weak	Vector14C
@@ -178,7 +178,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  169              		.weak	VectorE0
  170              		.thumb_set VectorE0,_unhandled_exception
  171              		.weak	VectorDC
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 4
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 4
 
 
  172              		.thumb_set VectorDC,_unhandled_exception
@@ -238,7 +238,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  226              		.thumb_set Vector70,_unhandled_exception
  227              		.weak	Vector6C
  228              		.thumb_set Vector6C,_unhandled_exception
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 5
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 5
 
 
  229              		.weak	Vector68
@@ -298,7 +298,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  283              		.align	2
  284              	.LC0:
  285 0000 756E6861 		.ascii	"unhandled exception\000"
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 6
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 6
 
 
  285      6E646C65 
@@ -358,7 +358,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  336 00b4 00000000 		.word	VectorB4
  337 00b8 00000000 		.word	VectorB8
  338 00bc 00000000 		.word	VectorBC
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 7
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 7
 
 
  339 00c0 00000000 		.word	VectorC0
@@ -418,7 +418,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  393 0198 00000000 		.word	Vector198
  394 019c 00000000 		.word	Vector19C
  395 01a0 00000000 		.word	Vector1A0
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 8
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 8
 
 
  396 01a4 00000000 		.word	Vector1A4
@@ -430,8 +430,8 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  402 01bc 00000000 		.word	Vector1BC
  403              		.text
  404              	.Letext0:
- 405              		.file 2 "c:\\users\\admin\\desktop\\microinfo\\eclipse_e-puck2\\tools\\gcc-arm-none-eabi-7-2017-q4
- 406              		.file 3 "c:\\users\\admin\\desktop\\microinfo\\eclipse_e-puck2\\tools\\gcc-arm-none-eabi-7-2017-q4
+ 405              		.file 2 "d:\\programs\\eclipse_e-puck2\\tools\\gcc-arm-none-eabi-7-2017-q4-major-win32\\arm-none-e
+ 406              		.file 3 "d:\\programs\\eclipse_e-puck2\\tools\\gcc-arm-none-eabi-7-2017-q4-major-win32\\arm-none-e
  407              		.file 4 "../../lib/e-puck2_main-processor/ChibiOS//os/ext/CMSIS/include/core_cm4.h"
  408              		.file 5 "../../lib/e-puck2_main-processor/ChibiOS//os/ext/CMSIS/ST/system_stm32f4xx.h"
  409              		.section	.debug_info,"",%progbits
@@ -444,14 +444,14 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  416 000c 46010000 		.4byte	.LASF36
  417 0010 0C       		.byte	0xc
  418 0011 1E000000 		.4byte	.LASF37
- 419 0015 72030000 		.4byte	.LASF38
+ 419 0015 4A030000 		.4byte	.LASF38
  420 0019 00000000 		.4byte	.Ldebug_ranges0+0
  421 001d 00000000 		.4byte	0
  422 0021 00000000 		.4byte	.Ldebug_line0
  423 0025 02       		.uleb128 0x2
  424 0026 01       		.byte	0x1
  425 0027 06       		.byte	0x6
- 426 0028 66030000 		.4byte	.LASF0
+ 426 0028 B9030000 		.4byte	.LASF0
  427 002c 02       		.uleb128 0x2
  428 002d 01       		.byte	0x1
  429 002e 08       		.byte	0x8
@@ -478,7 +478,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  450 0058 02       		.byte	0x2
  451 0059 4F       		.byte	0x4f
  452 005a 5E000000 		.4byte	0x5e
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 9
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 9
 
 
  453 005e 02       		.uleb128 0x2
@@ -538,7 +538,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  507 00c9 31       		.byte	0x31
  508 00ca 9B010000 		.4byte	0x19b
  509 00ce 0B       		.uleb128 0xb
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 10
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 10
 
 
  510 00cf B3000000 		.4byte	.LASF16
@@ -565,7 +565,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  531 00f9 B3000000 		.4byte	0xb3
  532 00fd 0C       		.byte	0xc
  533 00fe 0B       		.uleb128 0xb
- 534 00ff 54030000 		.4byte	.LASF20
+ 534 00ff A7030000 		.4byte	.LASF20
  535 0103 01       		.byte	0x1
  536 0104 36       		.byte	0x36
  537 0105 B3000000 		.4byte	0xb3
@@ -598,7 +598,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  564 013b B7020000 		.4byte	.LASF25
  565 013f 01       		.byte	0x1
  566 0140 3B       		.byte	0x3b
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 11
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 11
 
 
  567 0141 B3000000 		.4byte	0xb3
@@ -622,7 +622,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  585 0165 B3000000 		.4byte	0xb3
  586 0169 30       		.byte	0x30
  587 016a 0B       		.uleb128 0xb
- 588 016b CA030000 		.4byte	.LASF29
+ 588 016b E2030000 		.4byte	.LASF29
  589 016f 01       		.byte	0x1
  590 0170 3F       		.byte	0x3f
  591 0171 B3000000 		.4byte	0xb3
@@ -657,15 +657,15 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  620 01af 5F       		.byte	0x5f
  621 01b0 00       		.byte	0
  622 01b1 03       		.uleb128 0x3
- 623 01b2 AD030000 		.4byte	.LASF33
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 12
+ 623 01b2 C5030000 		.4byte	.LASF33
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 12
 
 
  624 01b6 01       		.byte	0x1
  625 01b7 43       		.byte	0x43
  626 01b8 C5000000 		.4byte	0xc5
  627 01bc 07       		.uleb128 0x7
- 628 01bd B7030000 		.4byte	.LASF34
+ 628 01bd CF030000 		.4byte	.LASF34
  629 01c1 01       		.byte	0x1
  630 01c2 58       		.byte	0x58
  631 01c3 91000000 		.4byte	0x91
@@ -698,8 +698,8 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  658 0200 00       		.byte	0
  659 0201 00       		.byte	0
  660 0202 12       		.uleb128 0x12
- 661 0203 4A030000 		.4byte	.LASF40
- 662 0207 4A030000 		.4byte	.LASF40
+ 661 0203 9D030000 		.4byte	.LASF40
+ 662 0207 9D030000 		.4byte	.LASF40
  663 020b 01       		.byte	0x1
  664 020c 4C       		.byte	0x4c
  665 020d 00       		.byte	0
@@ -718,7 +718,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  678 000a 0E       		.uleb128 0xe
  679 000b 55       		.uleb128 0x55
  680 000c 17       		.uleb128 0x17
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 13
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 13
 
 
  681 000d 11       		.uleb128 0x11
@@ -778,7 +778,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  735 0043 0B       		.uleb128 0xb
  736 0044 3B       		.uleb128 0x3b
  737 0045 05       		.uleb128 0x5
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 14
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 14
 
 
  738 0046 49       		.uleb128 0x49
@@ -838,7 +838,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  792 007c 0B       		.uleb128 0xb
  793 007d 0D       		.uleb128 0xd
  794 007e 00       		.byte	0
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 15
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 15
 
 
  795 007f 03       		.uleb128 0x3
@@ -898,7 +898,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  849 00b5 3A       		.uleb128 0x3a
  850 00b6 0B       		.uleb128 0xb
  851 00b7 3B       		.uleb128 0x3b
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 16
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 16
 
 
  852 00b8 0B       		.uleb128 0xb
@@ -958,7 +958,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  906 0006 00000000 		.4byte	.Ldebug_info0
  907 000a 04       		.byte	0x4
  908 000b 00       		.byte	0
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 17
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 17
 
 
  909 000c 0000     		.2byte	0
@@ -975,8 +975,8 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  920 000c 00000000 		.4byte	0
  921              		.section	.debug_line,"",%progbits
  922              	.Ldebug_line0:
- 923 0000 3D020000 		.section	.debug_str,"MS",%progbits,1
- 923      02002302 
+ 923 0000 13020000 		.section	.debug_str,"MS",%progbits,1
+ 923      0200F901 
  923      00000201 
  923      FB0E0D00 
  923      01010101 
@@ -1018,7 +1018,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  936      6C657200 
  937              	.LASF3:
  938 00a0 73686F72 		.ascii	"short unsigned int\000"
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 18
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 18
 
 
  938      7420756E 
@@ -1078,7 +1078,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  960      6C657200 
  961              	.LASF36:
  962 0146 474E5520 		.ascii	"GNU C11 7.2.1 20170904 (release) [ARM/embedded-7-br"
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 19
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 19
 
 
  962      43313120 
@@ -1138,7 +1138,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  978 02c0 76656374 		.ascii	"vector28\000"
  978      6F723238 
  978      00
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 20
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 20
 
 
  979              	.LASF35:
@@ -1187,176 +1187,177 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 1
  998 0341 6C6F6E67 		.ascii	"long int\000"
  998      20696E74 
  998      00
- 999              	.LASF40:
- 1000 034a 63685379 		.ascii	"chSysHalt\000"
- 1000      7348616C 
- 1000      7400
- 1001              	.LASF20:
- 1002 0354 6D656D6D 		.ascii	"memmanage_handler\000"
- 1002      616E6167 
- 1002      655F6861 
- 1002      6E646C65 
- 1002      7200
- 1003              	.LASF0:
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 21
+ 999              	.LASF38:
+ 1000 034a 433A5C55 		.ascii	"C:\\Users\\Iacopo\\Documents\\EPFL\\Microinf\\Worki"
+ 1000      73657273 
+ 1000      5C496163 
+ 1000      6F706F5C 
+ 1000      446F6375 
+ 1001 0377 6E675F64 		.ascii	"ng_dir\\Projet_MicroInfo20\\mini_projet\000"
+ 1001      69725C50 
+ 1001      726F6A65 
+ 1001      745F4D69 
+ 1001      63726F49 
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 21
 
 
- 1004 0366 7369676E 		.ascii	"signed char\000"
- 1004      65642063 
- 1004      68617200 
- 1005              	.LASF38:
- 1006 0372 433A5C55 		.ascii	"C:\\Users\\admin\\Desktop\\MicroInfo\\Projet\\Proje"
- 1006      73657273 
- 1006      5C61646D 
- 1006      696E5C44 
- 1006      65736B74 
- 1007 039f 745F4D69 		.ascii	"t_MicroInfo20\000"
- 1007      63726F49 
- 1007      6E666F32 
- 1007      3000
+ 1002              	.LASF40:
+ 1003 039d 63685379 		.ascii	"chSysHalt\000"
+ 1003      7348616C 
+ 1003      7400
+ 1004              	.LASF20:
+ 1005 03a7 6D656D6D 		.ascii	"memmanage_handler\000"
+ 1005      616E6167 
+ 1005      655F6861 
+ 1005      6E646C65 
+ 1005      7200
+ 1006              	.LASF0:
+ 1007 03b9 7369676E 		.ascii	"signed char\000"
+ 1007      65642063 
+ 1007      68617200 
  1008              	.LASF33:
- 1009 03ad 76656374 		.ascii	"vectors_t\000"
+ 1009 03c5 76656374 		.ascii	"vectors_t\000"
  1009      6F72735F 
  1009      7400
  1010              	.LASF34:
- 1011 03b7 5F5F6D61 		.ascii	"__main_stack_end__\000"
+ 1011 03cf 5F5F6D61 		.ascii	"__main_stack_end__\000"
  1011      696E5F73 
  1011      7461636B 
  1011      5F656E64 
  1011      5F5F00
  1012              	.LASF29:
- 1013 03ca 76656374 		.ascii	"vector34\000"
+ 1013 03e2 76656374 		.ascii	"vector34\000"
  1013      6F723334 
  1013      00
  1014              		.ident	"GCC: (GNU Tools for Arm Embedded Processors 7-2017-q4-major) 7.2.1 20170904 (release) [ARM
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 22
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 22
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 vectors.c
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:18     .text._unhandled_exception:00000000 $t
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 _unhandled_exception
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:54     .text._unhandled_exception:00000014 $d
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1BC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1B8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1B4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1B0
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1AC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1A8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1A4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1A0
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector19C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector198
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector194
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector190
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector18C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector188
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector184
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector180
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector17C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector178
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector174
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector170
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector16C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector168
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector164
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector160
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector15C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector158
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector154
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector150
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector14C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector148
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector144
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector140
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector13C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector138
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector134
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector130
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector12C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector128
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector124
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector120
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector11C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector118
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector114
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector110
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector10C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector108
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector104
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector100
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorFC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorF8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorF4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorF0
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 23
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:18     .text._unhandled_exception:00000000 $t
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 _unhandled_exception
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:54     .text._unhandled_exception:00000014 $d
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1BC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1B8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1B4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1B0
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1AC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1A8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1A4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1A0
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector19C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector198
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector194
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector190
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector18C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector188
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector184
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector180
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector17C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector178
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector174
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector170
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector16C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector168
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector164
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector160
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector15C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector158
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector154
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector150
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector14C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector148
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector144
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector140
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector13C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector138
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector134
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector130
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector12C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector128
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector124
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector120
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector11C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector118
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector114
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector110
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector10C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector108
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector104
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector100
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorFC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorF8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorF4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorF0
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 23
 
 
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorEC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorE8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorE4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorE0
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorDC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorD8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorD4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorD0
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorCC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorC8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorC4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorC0
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorBC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorB8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorB4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorB0
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorAC
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorA8
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorA4
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 VectorA0
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector9C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector98
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector94
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector90
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector8C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector88
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector84
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector80
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector7C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector78
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector74
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector70
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector6C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector68
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector64
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector60
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector5C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector58
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector54
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector50
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector4C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector48
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector44
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector40
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 SysTick_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 PendSV_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector34
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 DebugMon_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 SVC_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector28
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector24
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector20
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Vector1C
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 UsageFault_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 BusFault_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 MemManage_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 HardFault_Handler
-ARM GAS  C:\Users\admin\AppData\Local\Temp\cctnUBHR.s 			page 24
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorEC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorE8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorE4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorE0
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorDC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorD8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorD4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorD0
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorCC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorC8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorC4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorC0
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorBC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorB8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorB4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorB0
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorAC
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorA8
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorA4
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 VectorA0
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector9C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector98
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector94
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector90
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector8C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector88
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector84
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector80
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector7C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector78
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector74
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector70
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector6C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector68
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector64
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector60
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector5C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector58
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector54
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector50
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector4C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector48
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector44
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector40
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 SysTick_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 PendSV_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector34
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 DebugMon_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 SVC_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector28
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector24
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector20
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Vector1C
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 UsageFault_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 BusFault_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 MemManage_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 HardFault_Handler
+ARM GAS  C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s 			page 24
 
 
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 NMI_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:26     .text._unhandled_exception:00000000 Reset_Handler
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:290    .vectors:00000000 _vectors
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:283    .rodata._unhandled_exception.str1.4:00000000 $d
-C:\Users\admin\AppData\Local\Temp\cctnUBHR.s:287    .vectors:00000000 $d
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 NMI_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:26     .text._unhandled_exception:00000000 Reset_Handler
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:290    .vectors:00000000 _vectors
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:283    .rodata._unhandled_exception.str1.4:00000000 $d
+C:\Users\Iacopo\AppData\Local\Temp\ccAAdEso.s:287    .vectors:00000000 $d
 
 UNDEFINED SYMBOLS
 chSysHalt
