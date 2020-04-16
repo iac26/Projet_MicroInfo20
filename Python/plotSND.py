@@ -48,6 +48,8 @@ class serial_thread(Thread):
 
                     fft_graph.autoscale()
                     mic_graph.autoscale()
+                    fft_graph.relim()
+                    mic_graph.relim()
 
 
                 self.tell_to_update_plot()
@@ -166,6 +168,7 @@ def do_fft(array):
     FFT_norme = np.sqrt(np.add(np.multiply(np.real(FFT),np.real(FFT)),(np.multiply(np.imag(FFT),np.imag(FFT)))))
     return FFT_norme
 
+com = input("Enter com port: ")
 
 fig, ax = plt.subplots(num=None, figsize=(10, 8), dpi=80)
 fig.canvas.set_window_title('Noisy plot')
@@ -186,7 +189,7 @@ fft_2_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(3, 6, 1024)), l
 
 fft_3_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(0, 3, 1024)), lw=1, color='blue')
 
-reader = serial_thread("com7")
+reader = serial_thread(com)
 reader.start()
 
 timer = fig.canvas.new_timer(interval=50)
