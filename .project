@@ -8,4 +8,11 @@
 	</buildSpec>
 	<natures>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>e-puck2_main-processor</name>
+			<type>2</type>
+			<location>C:/Users/Iacopo/Documents/EPFL/Microinf/Working_dir/lib/e-puck2_main-processor</location>
+		</link>
+	</linkedResources>
 </projectDescription>
