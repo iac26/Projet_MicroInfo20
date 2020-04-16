@@ -38,13 +38,13 @@ class serial_thread(Thread):
                 data.append(readFloatSerial(self.port))
                 data.append(readFloatSerial(self.port))
                 data.append(readFloatSerial(self.port))
-                if len(data[0]) == 1024 and len(data[1]) == 1024 and len(data[2]) == 1024:
-                    mic_1_plot.set_ydata(data[0])
-                    mic_2_plot.set_ydata(data[1])
-                    mic_3_plot.set_ydata(data[2])
-                    fft_1_plot.set_ydata(do_fft(data[0]))
-                    fft_2_plot.set_ydata(do_fft(data[1]))
-                    fft_3_plot.set_ydata(do_fft(data[2]))
+                if len(data[0]) == 2*1024 and len(data[1]) == 2*1024 and len(data[2]) == 2*1024:
+                    mic_1_plot.set_ydata(re(data[0]))
+                    mic_2_plot.set_ydata(re(data[1]))
+                    mic_3_plot.set_ydata(re(data[2]))
+                    fft_1_plot.set_ydata(im(data[0]))
+                    fft_2_plot.set_ydata(im(data[1]))
+                    fft_3_plot.set_ydata(im(data[2]))
 
                     fft_graph.autoscale()
                     mic_graph.autoscale()
@@ -79,6 +79,19 @@ class serial_thread(Thread):
     def tell_to_update_plot(self):
         self.need_to_update = True
 
+def re(data):
+    tmp = []
+    for i, d in enumerate(data):
+        if (i % 2) == 0:
+            tmp.append(d)
+    return tmp
+
+def im(data):
+    tmp = []
+    for i, d in enumerate(data):
+        if (i % 2) == 1:
+            tmp.append(d)
+    return tmp
 
 # reads the FFT in float32 from the serial
 def readFloatSerial(port):
