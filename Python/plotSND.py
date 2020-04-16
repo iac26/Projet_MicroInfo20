@@ -46,6 +46,9 @@ class serial_thread(Thread):
                     fft_2_plot.set_ydata(do_fft(data[1]))
                     fft_3_plot.set_ydata(do_fft(data[2]))
 
+                    fft_graph.autoscale()
+                    mic_graph.autoscale()
+
 
                 self.tell_to_update_plot()
                 print(data)
