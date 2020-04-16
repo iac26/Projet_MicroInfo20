@@ -68,7 +68,7 @@ int main(void)
 
     //send_tab is used to save the state of the buffer to send (double buffering)
     //to avoid modifications of the buffer while sending it
-    static float send_tab[FFT_SIZE];
+    static float send_tab[FFT_SIZE*2];
 
 #ifdef SEND_FROM_MIC
     //starts the microphones processing thread.
@@ -83,15 +83,33 @@ int main(void)
         wait_send_to_computer();
 #ifdef DOUBLE_BUFFERING
         //we copy the buffer to avoid conflicts
-        arm_copy_f32(get_audio_buffer_ptr(FRONT_OUTPUT), send_tab, FFT_SIZE);
-        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
+        arm_copy_f32(get_audio_buffer_ptr(LEFT_CMPLX_INPUT), send_tab, FFT_SIZE*2);
+        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE*2);
+
+        arm_copy_f32(get_audio_buffer_ptr(RIGHT_CMPLX_INPUT), send_tab, FFT_SIZE*2);
+        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE*2);
+
+        arm_copy_f32(get_audio_buffer_ptr(FRONT_CMPLX_INPUT), send_tab, FFT_SIZE*2);
+        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE*2);
+
+
+
 #else
         SendFloatToComputer((BaseSequentialStream *) &SD3, get_audio_buffer_ptr(LEFT_OUTPUT), FFT_SIZE);
+        SendFloatToComputer((BaseSequentialStream *) &SD3, get_audio_buffer_ptr(RIGHT_OUTPUT), FFT_SIZE);
+        SendFloatToComputer((BaseSequentialStream *) &SD3, get_audio_buffer_ptr(FRONT_OUTPUT), FFT_SIZE);
+
 #endif  /* DOUBLE_BUFFERING */
 #else
 
-        float* bufferCmplxInput = get_audio_buffer_ptr(LEFT_CMPLX_INPUT);
-        float* bufferOutput = get_audio_buffer_ptr(LEFT_OUTPUT);
+        float* bufferCmplxInputLeft = get_audio_buffer_ptr(LEFT_CMPLX_INPUT);
+        float* bufferOutputLeft = get_audio_buffer_ptr(LEFT_OUTPUT);
+
+        float* bufferCmplxInputRight = get_audio_buffer_ptr(RIGHT_CMPLX_INPUT);
+		float* bufferOutputRight = get_audio_buffer_ptr(RIGHT_OUTPUT);
+
+		float* bufferCmplxInputFront = get_audio_buffer_ptr(FRONT_CMPLX_INPUT);
+		float* bufferOutputFront = get_audio_buffer_ptr(FRONT_OUTPUT);
 
         //static complex_float bufferCmplx[FFT_SIZE];
 
