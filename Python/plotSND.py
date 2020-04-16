@@ -2,8 +2,8 @@ import numpy as np
 import serial
 import sys
 import time
+import struct
 from threading import Thread
-
 
 
 class serial_thread(Thread):
@@ -19,6 +19,8 @@ class serial_thread(Thread):
 
         try:
             self.port = serial.Serial(port, timeout=0.5)
+            print("connected")
+            print(self.port)
         except:
             print('Cannot connect to the e-puck2')
             sys.exit(0)
@@ -27,7 +29,7 @@ class serial_thread(Thread):
     def run(self):
         while(self.alive):
             if(self.contReceive):
-                print(readFloatSerial(self.port))
+                readFloatSerial(self.port)
             else:
                 #flush the serial
                 self.port.read(self.port.inWaiting())
@@ -97,6 +99,7 @@ def readFloatSerial(port):
     size = struct.unpack('<h',port.read(2)) 
     #removes the second element which is void
     size = size[0]  
+    print("size: {}".format(size))
 
     #reads the data
     rcv_buffer = port.read(size*4)
@@ -106,9 +109,10 @@ def readFloatSerial(port):
     if(len(rcv_buffer) == 4*size):
         i = 0
         while(i < size):
-            data.append(struct.unpack_from('<f',rcv_buffer, i*4))
+            data.append(struct.unpack_from('<f',rcv_buffer, i*4)[0])
             i = i+1
 
+        print(data)
         print('received !')
         return data
     else:
@@ -116,5 +120,6 @@ def readFloatSerial(port):
         return []
 
 
-
+s = serial_thread("com7")
+s.start()
 
