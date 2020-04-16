@@ -5,7 +5,7 @@
 #include <communications.h>
 
 /*
-*	Sends floats numbers to the computer
+*       Sends floats numbers to the computer
 */
 void SendFloatToComputer(BaseSequentialStream* out, float* data, uint16_t size) 
 {	
@@ -83,8 +83,8 @@ uint16_t ReceiveInt16FromComputer(BaseSequentialStream* in, float* data, uint16_
 			c1 = chSequentialStreamGet(in);
 			c2 = chSequentialStreamGet(in);
 
-			data[i*2] = (int16_t)((c1 | c2<<8));	        //real
-			data[(i*2)+1] = 0;				//imaginary
+			data[i*2] = (int16_t)((c1 | c2<<8));	//real
+			data[(i*2)+1] = 0;										//imaginary
 		}
 	}
 
