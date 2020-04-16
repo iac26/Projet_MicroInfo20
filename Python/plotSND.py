@@ -6,6 +6,7 @@ import struct
 from threading import Thread
 import matplotlib.pyplot as plt
 
+
 data = []
 
 
@@ -41,6 +42,9 @@ class serial_thread(Thread):
                     mic_1_plot.set_ydata(data[0])
                     mic_2_plot.set_ydata(data[1])
                     mic_3_plot.set_ydata(data[2])
+                    fft_1_plot.set_ydata(do_fft(data[0]))
+                    fft_2_plot.set_ydata(do_fft(data[1]))
+                    fft_3_plot.set_ydata(do_fft(data[2]))
 
 
                 self.tell_to_update_plot()
@@ -154,6 +158,10 @@ def update_plot():
 def handle_close(evt):
     reader.stop()
 
+def do_fft(array):
+    FFT = np.fft.fft(array)
+    FFT_norme = np.sqrt(np.add(np.multiply(np.real(FFT),np.real(FFT)),(np.multiply(np.imag(FFT),np.imag(FFT)))))
+    return FFT_norme
 
 
 fig, ax = plt.subplots(num=None, figsize=(10, 8), dpi=80)
@@ -167,6 +175,13 @@ mic_1_plot, = plt.plot(np.linspace(0, 6, 1024), lw=1, color='red')
 mic_2_plot, = plt.plot(np.linspace(3, 6, 1024), lw=1, color='green')
 
 mic_3_plot, = plt.plot(np.linspace(0, 3, 1024), lw=1, color='blue')
+
+fft_graph = plt.subplot(212)
+fft_1_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(0, 6, 1024)), lw=1, color='red')
+
+fft_2_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(3, 6, 1024)), lw=1, color='green')
+
+fft_3_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(0, 3, 1024)), lw=1, color='blue')
 
 reader = serial_thread("com7")
 reader.start()
