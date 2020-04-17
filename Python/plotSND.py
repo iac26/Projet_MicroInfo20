@@ -248,7 +248,7 @@ def do_fft(array):
     FFT_norme = np.sqrt(np.add(np.multiply(np.real(FFT),np.real(FFT)),(np.multiply(np.imag(FFT),np.imag(FFT)))))
     return FFT_norme
 
-com = 'None'#input("Enter com port: ")
+com = input("Enter com port: ")
 
 index = 0
 rdata = []
