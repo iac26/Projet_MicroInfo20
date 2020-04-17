@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 data = []
 
+
 lin = np.linspace(0, 1024, 1024)
 sin = np.sin(0.1*lin)
 cos = np.cos(0.1*lin)
@@ -88,6 +89,13 @@ class serial_thread(Thread):
                     fft_1_plot.set_ydata(im(data[0]))
                     fft_2_plot.set_ydata(im(data[1]))
                     fft_3_plot.set_ydata(im(data[2]))
+
+                    buf = bytes()
+                    for dat in data:
+                        for d in dat:
+                            buf += struct.pack('f', d)
+
+                    f.write(str(buf))
 
                     fft_graph.autoscale()
                     mic_graph.autoscale()
@@ -219,6 +227,7 @@ def update_plot():
 
 def handle_close(evt):
     reader.stop()
+    f.close()
 
 def do_fft(array):
     FFT = np.fft.fft(array)
@@ -226,6 +235,8 @@ def do_fft(array):
     return FFT_norme
 
 com = input("Enter com port: ")
+
+f = open('save.dat', 'w+')
 
 fig, ax = plt.subplots(num=None, figsize=(10, 8), dpi=80)
 fig.canvas.set_window_title('Noisy plot')
