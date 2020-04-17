@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 data = []
 
+reader_on = True
 
 lin = np.linspace(0, 1024, 1024)
 sin = np.sin(0.1*lin)
@@ -62,6 +63,10 @@ class serial_thread(Thread):
         self.contReceive = True
         self.alive = True
         self.need_to_update = False
+        self.port = None
+        print(reader_on)
+        if not reader_on:
+            return
 
         print('Connecting to port {}'.format(port))
 
@@ -79,9 +84,15 @@ class serial_thread(Thread):
             if (self.contReceive):
                 global data
                 data = []
-                data.append(readFloatSerial(self.port))
-                data.append(readFloatSerial(self.port))
-                data.append(readFloatSerial(self.port))
+                if reader_on:
+                    data.append(readFloatSerial(self.port))
+                    data.append(readFloatSerial(self.port))
+                    data.append(readFloatSerial(self.port))
+                else:
+                    print(rdata)
+                    data.append(rdata[index][0])
+                    data.append(rdata[index][1])
+                    data.append(rdata[index][2])
                 if len(data[0]) == 2*1024 and len(data[1]) == 2*1024 and len(data[2]) == 2*1024:
                     mic_1_plot.set_ydata(re(data[0]))
                     mic_2_plot.set_ydata(re(data[1]))
@@ -90,12 +101,13 @@ class serial_thread(Thread):
                     fft_2_plot.set_ydata(im(data[1]))
                     fft_3_plot.set_ydata(im(data[2]))
 
-                    buf = bytes()
-                    for dat in data:
-                        for d in dat:
-                            buf += struct.pack('f', d)
+                    if reader_on:
+                        buf = bytes()
+                        for dat in data:
+                            for d in dat:
+                                buf += struct.pack('f', d)
 
-                    f.write(buf)
+                        f.write(buf)
 
                     fft_graph.autoscale()
                     mic_graph.autoscale()
@@ -107,18 +119,20 @@ class serial_thread(Thread):
                 #print(data)
             else:
                 # flush the serial
-                self.port.read(self.port.inWaiting())
+                if reader_on:
+                    self.port.read(self.port.inWaiting())
                 time.sleep(0.1)
 
     # clean exit of the thread if we need to stop it
     def stop(self):
         self.alive = False
         self.join()
-        if (self.port.isOpen()):
-            while (self.port.inWaiting() > 0):
-                self.port.read(self.port.inWaiting())
-                time.sleep(0.01)
-            self.port.close()
+        if reader_on:
+            if (self.port.isOpen()):
+                while (self.port.inWaiting() > 0):
+                    self.port.read(self.port.inWaiting())
+                    time.sleep(0.01)
+                self.port.close()
 
     def plot_updated(self):
         self.need_to_update = False
@@ -234,9 +248,50 @@ def do_fft(array):
     FFT_norme = np.sqrt(np.add(np.multiply(np.real(FFT),np.real(FFT)),(np.multiply(np.imag(FFT),np.imag(FFT)))))
     return FFT_norme
 
-com = input("Enter com port: ")
+com = 'None'#input("Enter com port: ")
 
-f = open('save.dat', 'wb')
+index = 0
+rdata = []
+
+if com == 'None':
+    reader_on = False
+    f = open('save.bin', 'rb')
+    print(f)
+    end = False
+    while not end:
+        tmp2 = []
+        ix = 0
+        while ix < 3:
+            tmp = []
+            size=2048
+            try:
+                raw = f.read(4 * size)
+                print(len(raw))
+                if (len(raw) == 4 * size):
+                    i = 0
+                    while (i < size):
+                        tmp.append(struct.unpack_from('f', raw, i * 4)[0])
+                        i = i + 1
+                else:
+                    end = True
+                    break
+            except:
+                print('err')
+                quit = True
+                break
+            print(tmp)
+            tmp2.append(tmp)
+            ix += 1
+        rdata.append(tmp2)
+    print(rdata)
+else:
+    f = open('save.bin', 'wb')
+
+
+
+
+
+
 
 fig, ax = plt.subplots(num=None, figsize=(10, 8), dpi=80)
 fig.canvas.set_window_title('Noisy plot')
@@ -257,12 +312,15 @@ fft_2_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(3, 6, 1024)), l
 
 fft_3_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(0, 3, 1024)), lw=1, color='blue')
 
-reader = serial_thread(com)
-reader.start()
+
 
 timer = fig.canvas.new_timer(interval=50)
 timer.add_callback(update_plot)
 timer.start()
+
+reader = serial_thread(com)
+reader.start()
+
 
 plt.show()
 
