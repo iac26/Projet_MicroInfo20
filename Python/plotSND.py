@@ -36,8 +36,11 @@ class serial_thread(Thread):
                 global data
                 data = []
                 data.append(readFloatSerial(self.port))
+                time.sleep(100)
                 data.append(readFloatSerial(self.port))
+                time.sleep(100)
                 data.append(readFloatSerial(self.port))
+                time.sleep(100)
                 if len(data[0]) == 2*1024 and len(data[1]) == 2*1024 and len(data[2]) == 2*1024:
                     mic_1_plot.set_ydata(re(data[0]))
                     mic_2_plot.set_ydata(re(data[1]))
