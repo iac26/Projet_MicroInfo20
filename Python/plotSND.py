@@ -159,7 +159,7 @@ def readFloatSerial(port):
             i = i + 1
 
         #print(data)
-        print('received !')
+        print('received {}'.format(data))
         return data
     else:
         print('Timout...')
