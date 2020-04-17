@@ -9,6 +9,49 @@ import matplotlib.pyplot as plt
 
 data = []
 
+lin = np.linspace(0, 1024, 1024)
+sin = np.sin(0.1*lin)
+cos = np.cos(0.1*lin)
+
+print('float val1[] = {', end='')
+for i, d in enumerate(sin):
+    print(' {}, {}'.format(d, cos[i]), end='')
+    if i == 1023:
+        print('', end='')
+    else:
+        print(',', end='')
+    if (i % 10) == 0:
+        print('')
+print('};')
+
+sin = np.sin(0.1*lin+1)
+cos = np.cos(0.1*lin+1)
+
+print('float val2[] = {', end='')
+for i, d in enumerate(sin):
+    print(' {}, {}'.format(d, cos[i]), end='')
+    if i == 1023:
+        print('', end='')
+    else:
+        print(',', end='')
+    if (i % 10) == 0:
+        print('')
+print('};')
+
+sin = np.sin(0.1*lin+2)
+cos = np.cos(0.1*lin+2)
+
+print('float val3[] = {', end='')
+for i, d in enumerate(sin):
+    print(' {}, {}'.format(d, cos[i]), end='')
+    if i == 1023:
+        print('', end='')
+    else:
+        print(',', end='')
+    if (i % 10) == 0:
+        print('')
+print('};')
+
 
 class serial_thread(Thread):
 
@@ -22,7 +65,7 @@ class serial_thread(Thread):
         print('Connecting to port {}'.format(port))
 
         try:
-            self.port = serial.Serial(port, timeout=0.5)
+            self.port = serial.Serial(port, timeout=0.5, baudrate=256000)
             print("connected")
             print(self.port)
         except:
@@ -146,7 +189,6 @@ def readFloatSerial(port):
     # removes the second element which is void
     size = size[0]
 
-    time.sleep(100)
 
     # reads the data
     rcv_buffer = port.read(size * 4)
