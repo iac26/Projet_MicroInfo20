@@ -24,8 +24,8 @@ for i, d in enumerate(sin):
         print('')
 print('};')
 
-sin = np.sin(0.1*lin+1)
-cos = np.cos(0.1*lin+1)
+sin = np.sin(0.1*lin+2)
+cos = np.cos(0.1*lin+2)
 
 print('float val2[] = {', end='')
 for i, d in enumerate(sin):
@@ -38,8 +38,8 @@ for i, d in enumerate(sin):
         print('')
 print('};')
 
-sin = np.sin(0.1*lin+2)
-cos = np.cos(0.1*lin+2)
+sin = np.sin(0.1*lin+4)
+cos = np.cos(0.1*lin+4)
 
 print('float val3[] = {', end='')
 for i, d in enumerate(sin):
