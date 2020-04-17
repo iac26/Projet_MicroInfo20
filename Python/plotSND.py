@@ -95,7 +95,7 @@ class serial_thread(Thread):
                         for d in dat:
                             buf += struct.pack('f', d)
 
-                    f.write(str(buf))
+                    f.write(buf)
 
                     fft_graph.autoscale()
                     mic_graph.autoscale()
@@ -236,7 +236,7 @@ def do_fft(array):
 
 com = input("Enter com port: ")
 
-f = open('save.dat', 'w+')
+f = open('save.dat', 'wb')
 
 fig, ax = plt.subplots(num=None, figsize=(10, 8), dpi=80)
 fig.canvas.set_window_title('Noisy plot')
