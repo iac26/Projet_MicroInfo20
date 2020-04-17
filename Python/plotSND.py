@@ -145,10 +145,11 @@ def readFloatSerial(port):
     size = struct.unpack('<h', port.read(2))
     # removes the second element which is void
     size = size[0]
-    print("size: {}".format(size))
+
 
     # reads the data
     rcv_buffer = port.read(size * 4)
+    print("size: {} / {}".format(size, len(rcv_buffer)))
     data = []
 
     # if we receive the good amount of data, we convert them in float32
