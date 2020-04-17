@@ -96,7 +96,7 @@ class serial_thread(Thread):
 
 
                 self.tell_to_update_plot()
-                print(data)
+                #print(data)
             else:
                 # flush the serial
                 self.port.read(self.port.inWaiting())
