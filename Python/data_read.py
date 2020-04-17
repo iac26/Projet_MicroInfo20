@@ -8,7 +8,7 @@ import math
 rdata = []
 
 reader_on = False
-f = open('save.bin', 'rb')
+f = open('save1.bin', 'rb')
 print(f)
 end = False
 while not end:
@@ -66,15 +66,39 @@ def arg(data):
     tmp = []
     i = 0
     while i < len(data)/2:
-        tmp.append(math.atan2(data[2*i+1], data[2*i]))
+        tmp.append(10*math.atan2(data[2*i+1], data[2*i]))
         i += 1
     return tmp
 
 
-ix = 2
-mpl.plot(arg(rdata[ix][0]))
-mpl.plot(arg(rdata[ix][1]))
-mpl.plot(arg(rdata[ix][2]))
+def max(data):
+    max = 0
+    for d in data:
+        if d > max:
+            max = d
+    return max
+
+
+ix = 3
+mpl.figure()
+mpl.plot(re(rdata[ix][0]))
+mpl.plot(im(rdata[ix][0]))
+
+
+mpl.figure()
+mpl.plot(re(rdata[ix][1]))
+mpl.plot(im(rdata[ix][1]))
+
+
+mpl.figure()
+mpl.plot(re(rdata[ix][2]))
+mpl.plot(im(rdata[ix][2]))
+
+
+print('1: {}'.format(max(arg(rdata[ix][0]))))
+print('2: {}'.format(max(arg(rdata[ix][1]))))
+print('3: {}'.format(max(arg(rdata[ix][2]))))
+
 #mpl.plot(re(rdata[0][0]))
 
 mpl.show()
