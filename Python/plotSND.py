@@ -36,11 +36,8 @@ class serial_thread(Thread):
                 global data
                 data = []
                 data.append(readFloatSerial(self.port))
-                time.sleep(100)
                 data.append(readFloatSerial(self.port))
-                time.sleep(100)
                 data.append(readFloatSerial(self.port))
-                time.sleep(100)
                 if len(data[0]) == 2*1024 and len(data[1]) == 2*1024 and len(data[2]) == 2*1024:
                     mic_1_plot.set_ydata(re(data[0]))
                     mic_2_plot.set_ydata(re(data[1]))
@@ -149,6 +146,7 @@ def readFloatSerial(port):
     # removes the second element which is void
     size = size[0]
 
+    time.sleep(100)
 
     # reads the data
     rcv_buffer = port.read(size * 4)
