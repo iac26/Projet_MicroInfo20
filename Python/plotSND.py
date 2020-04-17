@@ -65,7 +65,7 @@ class serial_thread(Thread):
         print('Connecting to port {}'.format(port))
 
         try:
-            self.port = serial.Serial(port, timeout=0.5, baudrate=256000)
+            self.port = serial.Serial(port, timeout=1, baudrate=115200)
             print("connected")
             print(self.port)
         except:
