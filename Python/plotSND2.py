@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import linalg as la
 import serial
 import sys
 import time
@@ -11,48 +12,56 @@ data = []
 
 reader_on = True
 
-lin = np.linspace(0, 1024, 1024)
-sin = np.sin(0.1*lin)
-cos = np.cos(0.1*lin)
 
-print('float val1[] = {', end='')
-for i, d in enumerate(sin):
-    print(' {}, {}'.format(d, cos[i]), end='')
-    if i == 1023:
-        print('', end='')
-    else:
-        print(',', end='')
-    if (i % 10) == 0:
-        print('')
-print('};')
+def do_fft(array):
+    FFT = np.fft.fft(array)
+    return FFT
+def do_norm(FFT):
+    FFT_norme = np.sqrt(np.add(np.multiply(np.real(FFT),np.real(FFT)),(np.multiply(np.imag(FFT),np.imag(FFT)))))
+    return FFT_norme
+def do_arg(FFT):
+    FFT_arg = np.arctan2(np.imag(FFT), np.real(FFT))
+    return FFT_arg
 
-sin = np.sin(0.1*lin+2)
-cos = np.cos(0.1*lin+2)
+def re(data):
+    tmp = []
+    for i, d in enumerate(data):
+        if (i % 2) == 0:
+            tmp.append(d)
+    return tmp
 
-print('float val2[] = {', end='')
-for i, d in enumerate(sin):
-    print(' {}, {}'.format(d, cos[i]), end='')
-    if i == 1023:
-        print('', end='')
-    else:
-        print(',', end='')
-    if (i % 10) == 0:
-        print('')
-print('};')
+def im(data):
+    tmp = []
+    for i, d in enumerate(data):
+        if (i % 2) == 1:
+            tmp.append(d)
+    return tmp
 
-sin = np.sin(0.1*lin+4)
-cos = np.cos(0.1*lin+4)
 
-print('float val3[] = {', end='')
-for i, d in enumerate(sin):
-    print(' {}, {}'.format(d, cos[i]), end='')
-    if i == 1023:
-        print('', end='')
-    else:
-        print(',', end='')
-    if (i % 10) == 0:
-        print('')
-print('};')
+def find_args_FFT(data):
+    res = []
+    for dset in data:
+        fft = do_fft(dset)
+        norm = do_norm(fft)[512:]
+        arg = do_arg(fft)[512:]
+        max = 0
+        ix = 0
+        for i, e in enumerate(norm):
+            if e > max:
+                max = e
+                ix = i
+        print(ix)
+        a = arg[ix]
+        res.append(a)
+
+    return res
+
+def angulate(a):
+    while a > np.pi:
+        a -= np.pi * 2
+    while a < -np.pi:
+        a += np.pi * 2
+    return a
 
 
 class serial_thread(Thread):
@@ -85,32 +94,39 @@ class serial_thread(Thread):
                 global data
                 data = []
                 if reader_on:
-                    data.append(readFloatSerial(self.port))
-                    data.append(readFloatSerial(self.port))
-                    data.append(readFloatSerial(self.port))
-                    data.append(readFloatSerial(self.port))
+                    data.append(np.array(readFloatSerial(self.port)))
+                    data.append(np.array(readFloatSerial(self.port)))
+                    data.append(np.array(readFloatSerial(self.port)))
+                    data.append(np.array(readFloatSerial(self.port)))
+                    #print(data)
                 else:
-                    print(rdata)
-                    data.append(rdata[index][0])
-                    data.append(rdata[index][1])
-                    data.append(rdata[index][2])
-                if len(data[0]) == 2*1024 and len(data[1]) == 2*1024 and len(data[2]) == 2*1024:
+                    pass
+                if len(data[0]) == 1024 and len(data[1]) == 1024 and len(data[2]) == 1024 and len(data[3]) == 1024:
+                    #n1 = np.max(data[0])
+                    #n2 = np.max(data[1])
+                    #n3 = np.max(data[2])
+                    #n4 = np.max(data[3])
+                    #data[0] = data[0] / n1
+                    #data[1] = data[1] / n2
+                    #data[2] = data[2] / n3
+                    #data[3] = data[3] / n4
                     mic_1_plot.set_ydata((data[0]))
                     mic_2_plot.set_ydata((data[1]))
                     mic_3_plot.set_ydata((data[2]))
-                    mic_3_plot.set_ydata((data[3]))
+                    mic_4_plot.set_ydata((data[3]))
 
-                    if reader_on:
-                        buf = bytes()
-                        for dat in data:
-                            for d in dat:
-                                buf += struct.pack('f', d)
+                    res = find_args_FFT(data)
 
-                        f.write(buf)
+                    a1 = angulate(res[0] - res[1])
+                    a2 = angulate(res[0] - res[2])
+                    a3 = angulate(res[0] - res[3])
 
-                    fft_graph.autoscale()
+
+                    fft_1_plot.set_ydata(np.linspace(a1, a1, 5))
+                    fft_2_plot.set_ydata(np.linspace(a2, a2, 5))
+                    fft_3_plot.set_ydata(np.linspace(a3, a3, 5))
+
                     mic_graph.autoscale()
-                    fft_graph.relim()
                     mic_graph.relim()
 
 
@@ -143,19 +159,7 @@ class serial_thread(Thread):
     def tell_to_update_plot(self):
         self.need_to_update = True
 
-def re(data):
-    tmp = []
-    for i, d in enumerate(data):
-        if (i % 2) == 0:
-            tmp.append(d)
-    return tmp
 
-def im(data):
-    tmp = []
-    for i, d in enumerate(data):
-        if (i % 2) == 1:
-            tmp.append(d)
-    return tmp
 
 # reads the FFT in float32 from the serial
 def readFloatSerial(port):
@@ -242,52 +246,11 @@ def handle_close(evt):
     reader.stop()
     f.close()
 
-def do_fft(array):
-    FFT = np.fft.fft(array)
-    FFT_norme = np.sqrt(np.add(np.multiply(np.real(FFT),np.real(FFT)),(np.multiply(np.imag(FFT),np.imag(FFT)))))
-    return FFT_norme
 
 com = input("Enter com port: ")
 
 index = 0
 rdata = []
-
-if com == 'None':
-    reader_on = False
-    f = open('save.bin', 'rb')
-    print(f)
-    end = False
-    while not end:
-        tmp2 = []
-        ix = 0
-        while ix < 3:
-            tmp = []
-            size=2048
-            try:
-                raw = f.read(4 * size)
-                print(len(raw))
-                if (len(raw) == 4 * size):
-                    i = 0
-                    while (i < size):
-                        tmp.append(struct.unpack_from('f', raw, i * 4)[0])
-                        i = i + 1
-                else:
-                    end = True
-                    break
-            except:
-                print('err')
-                quit = True
-                break
-            print(tmp)
-            tmp2.append(tmp)
-            ix += 1
-        rdata.append(tmp2)
-    print(rdata)
-else:
-    f = open('save.bin', 'wb')
-
-
-
 
 
 
@@ -298,19 +261,24 @@ plt.subplots_adjust(left=0.1, bottom=0.25)
 fig.canvas.mpl_connect('close_event', handle_close)
 
 mic_graph = plt.subplot(211)
+plt.grid()
 mic_1_plot, = plt.plot(np.linspace(0, 6, 1024), lw=1, color='red')
 
 mic_2_plot, = plt.plot(np.linspace(3, 6, 1024), lw=1, color='green')
 
 mic_3_plot, = plt.plot(np.linspace(0, 3, 1024), lw=1, color='blue')
 
+mic_4_plot, = plt.plot(np.linspace(0, 3, 1024), lw=1, color='orange')
+
 fft_graph = plt.subplot(212)
-fft_1_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(0, 6, 1024)), lw=1, color='red')
+fft_1_plot, = plt.plot(np.linspace(-np.pi, -np.pi, 5), lw=1, color='red')
 
-fft_2_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(3, 6, 1024)), lw=1, color='green')
+fft_2_plot, = plt.plot(np.linspace(0, 0, 5), lw=1, color='green')
 
-fft_3_plot, = plt.plot(np.arange(-512,512,1), do_fft(np.linspace(0, 3, 1024)), lw=1, color='blue')
+fft_3_plot, = plt.plot(np.linspace(np.pi, np.pi, 5), lw=1, color='blue')
 
+fft_graph.autoscale()
+fft_graph.relim()
 
 
 timer = fig.canvas.new_timer(interval=50)

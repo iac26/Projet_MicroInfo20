@@ -14,8 +14,21 @@ typedef enum {
 	LEFT_OUTPUT,
 	RIGHT_OUTPUT,
 	FRONT_OUTPUT,
-	BACK_OUTPUT
+	BACK_OUTPUT,
+	//Arrays of raw mic data
+	LEFT_RAW,
+	RIGHT_RAW,
+	FRONT_RAW,
+	BACK_RAW
 } BUFFER_NAME_t;
+
+
+float get_phase(void);
+
+float* get_phases(void);
+
+float get_clean_phase(void);
+uint8_t is_phase_ready(void);
 
 
 void processAudioData(int16_t *data, uint16_t num_samples);
