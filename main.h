@@ -10,6 +10,8 @@ extern "C" {
 #include "parameter/parameter.h"
 
 
+void arrayTest(int index, int max, const char * msg);
+
 /** Robot wide IPC bus. */
 extern messagebus_t bus;
 

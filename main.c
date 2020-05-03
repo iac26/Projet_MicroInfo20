@@ -8,74 +8,87 @@
 #include <usbcfg.h>
 #include <main.h>
 #include <chprintf.h>
+#include <arm_math.h>
+#include <spi_comm.h>
+#include <camera/dcmi_camera.h>
+#include <camera/po8030.h>
 #include <motors.h>
-#include <audio/microphone.h>
+#include <leds.h>
+#include <sensors/proximity.h>
+#include <sensors/imu.h>
 
 #include <audio_processing.h>
-#include <fft.h>
-#include <communications.h>
-#include <arm_math.h>
+#include <proximity_processing.h>
+#include <pickup_detector.h>
+#include <image_processing.h>
+#include <navigation.h>
 
-//uncomment to send the FFTs results from the real microphones
-#define SEND_FROM_MIC
 
-//uncomment to use double buffering to send the FFT to the computer
-#define DOUBLE_BUFFERING
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
 
 static void serial_start(void)
 {
-	static SerialConfig ser_cfg = {
-	    115200,
-	    0,
-	    0,
-	    0,
-	};
+	static SerialConfig ser_cfg = { 115200, 0, 0, 0, };
 
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
-static void timer12_start(void){
-    //General Purpose Timer configuration   
-    //timer 12 is a 16 bit timer so we can measure time
-    //to about 65ms with a 1Mhz counter
-    static const GPTConfig gpt12cfg = {
-        1000000,        /* 1MHz timer clock in order to measure uS.*/
-        NULL,           /* Timer callback.*/
-        0,
-        0
-    };
+//debug tools
 
-    gptStart(&GPTD12, &gpt12cfg);
-    //let the timer count to max value
-    gptStartContinuous(&GPTD12, 0xFFFF);
+void arrayTest(int index, int max, const char * msg) {
+	if(!(index < max)) {
+		chSysHalt(msg);
+	}
+
 }
 
 int main(void)
 {
 
-    halInit();
-    chSysInit();
-    mpu_init();
+	halInit();
+	chSysInit();
+	mpu_init();
 
-    //starts the serial communication
-    serial_start();
-    //starts the USB communication
-    usb_start();
-    //starts timer 12
-    timer12_start();
+	messagebus_init(&bus, &bus_lock, &bus_condvar);
 
-    //initialisation des moteurs
-    motors_init();
+	//periferals init
+	clear_leds();
+	set_body_led(0);
+	set_front_led(0);
+	usb_start();
+	dcmi_start();
+	po8030_start();
+	motors_init();
+	proximity_start();
+	imu_start();
+	spi_comm_start();
+	serial_start();
+	audio_processing_start();
 
-    mic_start(&processAudioData);
+	chprintf((BaseSequentialStream *) &SD3, "STARTUP\n");
 
 
-    while (1) {
-    	wait_send_to_computer();
+	//modules init
+	proximity_processing_start();
 
-    	chprintf((BaseSequentialStream *) &SD3, "phase: %1.3f\n", get_phase());
-    }
+	pickup_detector_start();
 
+	image_processing_start();
+
+	navigation_start();
+
+
+
+	while (1) {
+//	    if(is_phase_ready()) {
+//		    chprintf((BaseSequentialStream *) &SD3, "H:phase: %1.3f, freq_i: %d\n", get_clean_phase(), get_index());
+//	    } else {
+//		    chprintf((BaseSequentialStream *) &SD3, "H:no phase\n");
+//	    }
+		chThdSleepMilliseconds(1000);
+	}
 
 }
 
@@ -84,5 +97,5 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
 void __stack_chk_fail(void)
 {
-    chSysHalt("Stack smashing detected");
+	chSysHalt("Stack smashing detected");
 }

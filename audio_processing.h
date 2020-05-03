@@ -1,7 +1,6 @@
 #ifndef AUDIO_PROCESSING_H
 #define AUDIO_PROCESSING_H
 
-
 #define FFT_SIZE 	1024
 
 typedef enum {
@@ -15,32 +14,31 @@ typedef enum {
 	RIGHT_OUTPUT,
 	FRONT_OUTPUT,
 	BACK_OUTPUT,
-	//Arrays of raw mic data
-	LEFT_RAW,
-	RIGHT_RAW,
-	FRONT_RAW,
-	BACK_RAW
 } BUFFER_NAME_t;
-
 
 float get_phase(void);
 
 float* get_phases(void);
 
 float get_clean_phase(void);
+
 uint8_t is_phase_ready(void);
 
+uint16_t get_index(void);
+uint16_t get_freq(void);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
 
 /*
-*	put the invoking thread into sleep until it can process the audio datas
-*/
+ *	put the invoking thread into sleep until it can process the audio datas
+ */
 void wait_send_to_computer(void);
 
 /*
-*	Returns the pointer to the BUFFER_NAME_t buffer asked
-*/
+ *	Returns the pointer to the BUFFER_NAME_t buffer asked
+ */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
+
+void audio_processing_start(void);
 
 #endif /* AUDIO_PROCESSING_H */
