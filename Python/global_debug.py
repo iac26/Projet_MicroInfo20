@@ -22,7 +22,7 @@ class broadCaster(threading.Thread):
 	def run(self):
 		while True:
 			data = self.ser.read(16)
-			#print(data.decode(), end='')
+			print(data.decode(), end='')
 			lock.acquire()
 			for c in clients:
 				c.socket.send(data)
@@ -51,7 +51,7 @@ class chatServer(threading.Thread):
         clients.remove(self)
         lock.release()
 
-broadCaster('com12', 115200).start()
+broadCaster('com5', 115200).start()
 
 while True:  # wait for socket to connect
     
