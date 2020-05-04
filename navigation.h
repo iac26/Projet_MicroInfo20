@@ -7,7 +7,8 @@ typedef enum {
 	N_FOLLOW_WALL,
 	N_PAUSED,
 	N_TARGET_INSIGHT,
-	N_ARRIVED
+	N_ARRIVED,
+	N_DEBUG
 } NAVIGATION_STATE_t;
 
 typedef enum {

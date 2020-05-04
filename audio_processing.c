@@ -4,7 +4,6 @@
 #include <usbcfg.h>
 #include <chprintf.h>
 
-
 #include <audio/microphone.h>
 #include <audio_processing.h>
 #include <arm_math.h>
@@ -47,11 +46,12 @@ static uint16_t phase_control;
 static float phase_samples[NB_SAMPLES];
 
 /*
-*	Wrapper to call a very optimized fft function provided by ARM
-*	which uses a lot of tricks to optimize the computations
-*/
-void doFFT_optimized(uint16_t size, float* complex_buffer){
-	if(size == 1024)
+ *	Wrapper to call a very optimized fft function provided by ARM
+ *	which uses a lot of tricks to optimize the computations
+ */
+void doFFT_optimized(uint16_t size, float* complex_buffer)
+{
+	if (size == 1024)
 		arm_cfft_f32(&arm_cfft_sR_f32_len1024, complex_buffer, 0, 1);
 
 }
@@ -81,10 +81,8 @@ void detect_phase(void)
 	}
 	if (max > DET_THRESH) {
 
-		float phase_1 = atan2(micLeft_cmplx_input[IM(ix)],
-				micLeft_cmplx_input[RE(ix)]);
-		float phase_2 = atan2(micRight_cmplx_input[IM(ix)],
-				micRight_cmplx_input[RE(ix)]);
+		float phase_1 = atan2(micLeft_cmplx_input[IM(ix)], micLeft_cmplx_input[RE(ix)]);
+		float phase_2 = atan2(micRight_cmplx_input[IM(ix)], micRight_cmplx_input[RE(ix)]);
 		phase_dif = modulo_cercle(phase_1 - phase_2);
 		valid_phase = 1;
 		freq_i = ix;
@@ -128,13 +126,12 @@ int cleanup_phase(void)
 {
 	phase_control++;
 	uint8_t ret_val;
-	if (phase_dif < PHASE_MAX && phase_dif > -PHASE_MAX && valid_phase
-			&& (abs(freq_ctrl - freq_i) < FREQ_THRESH
-					|| phase_count == 0)) {
+	if (phase_dif < PHASE_MAX && phase_dif > -PHASE_MAX && valid_phase && (abs(freq_ctrl - freq_i) < FREQ_THRESH || phase_count == 0)) {
 		if (phase_count == 0) {
 			freq_ctrl = freq_i;
 			freq = 15.139 * freq_i + 5.423;
 		}
+		PROTEC(phase_count, NB_SAMPLES, "audio1");
 		phase_samples[phase_count] = phase_dif;
 		phase_count++;
 		phase_control = 0;
@@ -185,15 +182,12 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 	static volatile uint16_t data_index = 0;
 
 	while (1) {
-		chprintf((BaseSequentialStream *) &SD3, "access %d/2048 %d/2048\n", RE(fft_index), IM(fft_index));
-		micRight_cmplx_input[RE(fft_index)] = data[MIC(data_index,
-				MIC_RIGHT)];
-		micLeft_cmplx_input[RE(fft_index)] = data[MIC(data_index,
-				MIC_LEFT)];
-		micBack_cmplx_input[RE(fft_index)] = data[MIC(data_index,
-				MIC_BACK)];
-		micFront_cmplx_input[RE(fft_index)] = data[MIC(data_index,
-				MIC_FRONT)];
+		PROTEC(RE(fft_index), 2*FFT_SIZE, "audioRE");
+		PROTEC(IM(fft_index), 2*FFT_SIZE, "audioIM");
+		micRight_cmplx_input[RE(fft_index)] = data[MIC(data_index, MIC_RIGHT)];
+		micLeft_cmplx_input[RE(fft_index)] = data[MIC(data_index, MIC_LEFT)];
+		micBack_cmplx_input[RE(fft_index)] = data[MIC(data_index, MIC_BACK)];
+		micFront_cmplx_input[RE(fft_index)] = data[MIC(data_index, MIC_FRONT)];
 
 		micLeft_cmplx_input[IM(fft_index)] = 0;
 		micRight_cmplx_input[IM(fft_index)] = 0;
@@ -202,14 +196,19 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 
 		fft_index++;
 		data_index++;
+		uint8_t need_to_break = 0;
+		if (fft_index >= FFT_SIZE) {
+			fft_index = 0;
+			need_to_break = 1;
+		}
 		if (4 * data_index >= num_samples) {
 			data_index = 0;
 			return;
 		}
-		if (fft_index >= FFT_SIZE) {
-			fft_index = 0;
+		if(need_to_break) {
 			break;
 		}
+
 	}
 	doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
 	doFFT_optimized(FFT_SIZE, micRight_cmplx_input);

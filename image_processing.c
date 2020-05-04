@@ -55,6 +55,8 @@ static int16_t f2r_moy;
 
 static uint8_t *img_buff_ptr;
 
+static uint8_t frame_buffer[HEIGHT*WIDTH];
+
 static uint8_t subdivision;
 static int16_t prev_larg;
 static int16_t larg;
@@ -64,14 +66,13 @@ static uint8_t fails;
 static int16_t first_col;
 static int16_t last_col;
 static uint16_t pattern_width;
-static uint8_t pattern_visible;
+static uint8_t pattern_visible=0;
 static uint16_t pattern_center;
 
-static uint16_t frames_processed;
 
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
-uint8_t analyse_col(uint8_t* image, uint16_t x)
+uint8_t analyse_col(volatile uint8_t* image, volatile uint16_t x)
 {
 	nb_rise = 0;
 	nb_fall = 0;
@@ -89,14 +90,17 @@ uint8_t analyse_col(uint8_t* image, uint16_t x)
 				last_rise = y;
 				nb_rise += 1;
 				if (nb_fall != 0) {
+					PROTEC(nb_f2r, MAX_EDGES, "nbf2r1");
 					f2r_dist[nb_f2r] = last_rise - last_fall;
 					nb_f2r += 1;
 				}
 			} else {
+				PROTEC(nb_rise - 1, MAX_EDGES, "nbrise");
 				rise_dist[nb_rise - 1] = y - last_rise;
 				nb_rise += 1;
 				last_rise = y;
 				if (nb_fall != 0) {
+					PROTEC(nb_f2r, MAX_EDGES, "nbf2r2");
 					f2r_dist[nb_f2r] = last_rise - last_fall;
 					nb_f2r += 1;
 				}
@@ -109,14 +113,17 @@ uint8_t analyse_col(uint8_t* image, uint16_t x)
 				last_fall = y;
 				nb_fall += 1;
 				if (nb_rise != 0) {
+					PROTEC(nb_r2f, MAX_EDGES, "nbf2r1");
 					r2f_dist[nb_r2f] = last_fall - last_rise;
 					nb_r2f += 1;
 				}
 			} else {
+				PROTEC(nb_fall - 1, MAX_EDGES, "nbfall");
 				fall_dist[nb_fall - 1] = y - last_fall;
 				nb_fall += 1;
 				last_fall = y;
 				if (nb_rise != 0) {
+					PROTEC(nb_r2f, MAX_EDGES, "nbf2r2");
 					r2f_dist[nb_r2f] = last_fall - last_rise;
 					nb_r2f += 1;
 				}
@@ -164,7 +171,7 @@ uint8_t analyse_col(uint8_t* image, uint16_t x)
 
 }
 
-void search_pattern(uint8_t * image)
+void search_pattern(volatile uint8_t * image)
 {
 	//chprintf((BaseSequentialStream *) &SD3, "new_search\n");
 	subdivision = START_SUB;
@@ -234,7 +241,7 @@ static THD_FUNCTION(CaptureImage, arg)
 	(void) arg;
 
 	po8030_advanced_config(FORMAT_YYYY, CORNER_X, CORNER_Y, IMAGE_WIDTH, IMAGE_HEIGHT, SUBSAMPLING_X4, SUBSAMPLING_X4);
-	dcmi_enable_double_buffering();
+	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 	po8030_set_awb(1);
@@ -259,7 +266,6 @@ static THD_FUNCTION(ProcessImage, arg)
 	chRegSetThreadName("ProcessImage");
 	(void) arg;
 
-	frames_processed = 0;
 
 	while (1) {
 		//waits until an image has been captured
@@ -267,9 +273,12 @@ static THD_FUNCTION(ProcessImage, arg)
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
 		//chprintf((BaseSequentialStream *) &SD3, "before_IMSEARCH\n");
-		search_pattern(img_buff_ptr);
+		for (uint16_t i = 0; i < HEIGHT*WIDTH; i++) {
+			frame_buffer[i] = img_buff_ptr[i];
+		}
+
+		search_pattern(frame_buffer);
 		//chprintf((BaseSequentialStream *) &SD3, "after_IMSEARCH\n");
-		frames_processed += 1;
 
 		//chprintf((BaseSequentialStream *) &SD3, "%d: v: %3d c:%3d w:%3d\n", frames_processed, pattern_visible, pattern_center, pattern_width);
 
@@ -280,7 +289,7 @@ static THD_FUNCTION(ProcessImage, arg)
 		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)&pattern_visible, sizeof(uint8_t));
 		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)&pattern_center, sizeof(uint16_t));
 		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)&pattern_width, sizeof(uint16_t));
-		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)img_buff_ptr, sizeof(uint8_t) * size);
+		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)frame_buffer, sizeof(uint8_t) * size);
 #endif
 
 	}

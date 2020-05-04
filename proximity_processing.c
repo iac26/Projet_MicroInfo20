@@ -9,7 +9,6 @@
 
 #include <proximity_processing.h>
 
-
 #define PERIOD_MS 100
 
 //#define DEBUG
@@ -36,9 +35,11 @@ static THD_FUNCTION(ProximityProcessor, arg)
 //		chprintf((BaseSequentialStream *) &SD3, "time %d\n", ST2MS(time));
 #endif
 		for (uint8_t i = 0; i < PROXIMITY_NB_CHANNELS; i++) {
-			if (abs(get_calibrated_prox(i)) < WEIRD_THRESH)
-			valeurs[i] = get_calibrated_prox(i);
-			distances[i] = DATA2MM(valeurs[i]);
+			if (abs(get_calibrated_prox(i)) < WEIRD_THRESH) {
+				PROTEC(i, PROXIMITY_NB_CHANNELS, "prox1");
+				valeurs[i] = get_calibrated_prox(i);
+				distances[i] = DATA2MM(valeurs[i]);
+			}
 #ifdef DEBUG
 			//chprintf((BaseSequentialStream *) &SD3, "ir %d: prox_c: %d dist(mm): %d\n", i, valeurs[i], distances[i]);
 #endif
@@ -68,7 +69,7 @@ void proximity_processing_start(void)
 {
 	calibrate_ir();
 	chThdCreateStatic(waProximityProcessor, sizeof(waProximityProcessor),
-			NORMALPRIO, ProximityProcessor, NULL);
+	NORMALPRIO, ProximityProcessor, NULL);
 
 }
 

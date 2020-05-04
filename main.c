@@ -37,12 +37,6 @@ static void serial_start(void)
 
 //debug tools
 
-void arrayTest(int index, int max, const char * msg) {
-	if(!(index < max)) {
-		chSysHalt(msg);
-	}
-
-}
 
 int main(void)
 {
@@ -68,6 +62,7 @@ int main(void)
 	audio_processing_start();
 
 	chprintf((BaseSequentialStream *) &SD3, "STARTUP\n");
+
 
 
 	//modules init

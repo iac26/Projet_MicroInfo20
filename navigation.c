@@ -29,7 +29,8 @@
 #define TI_ALIGN_TOL		15
 #define ALIGN_TOL		3
 #define ADJUST_TOL		3
-#define DISTANCE_TO_WALL_TOL	25
+#define DISTANCE_TO_WALL_TOL_F	30
+#define DISTANCE_TO_WALL_TOL_N	10
 #define FAR			200
 
 #define ROBOT_RAD		(60/2)
@@ -41,6 +42,7 @@
 #define HALF_TURN		(TURN/2)
 
 #define DIST_PROB_T		10
+#define NO_SIDE_T		10
 #define END_OF_WALL_T		20
 #define CORRECT_WALL_T		5
 #define ALIGN_FAR_T		5
@@ -76,6 +78,7 @@ static uint16_t correct_wall_c;
 static uint16_t dist_prob_c;
 static uint16_t target_spotted_c;
 static uint16_t target_lost_c;
+static uint16_t no_side_c;
 
 static uint16_t* distances;
 
@@ -88,9 +91,9 @@ static int16_t r_speed;
 //si pas de son valide-> wait
 void sound_search(void)
 {
-	//l_speed = 800;
-	//r_speed = 800;
-	//navigation_state = N_MOVE_FORWARD;
+	l_speed = MOVE_SPEED;
+	r_speed = MOVE_SPEED;
+	navigation_state = N_MOVE_FORWARD;
 }
 
 //le robot avance en checkant si il y a un mur devant
@@ -99,20 +102,20 @@ void sound_search(void)
 // detection d'arrivee-> arrived
 void move_forward(void)
 {
-	chprintf((BaseSequentialStream *) &SD3, "moving  %5d %5d\n", distances[FORWARD_LEFT], distances[FORWARD_RIGHT]);
+	chprintf((BaseSequentialStream *) &SD3, "moving  %5d %5d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT]);
 
-	if (distances[FORWARD_LEFT] < NO_WALL_T || distances[FORWARD_RIGHT] < NO_WALL_T) {
-		l_speed = distances[FORWARD_RIGHT] * 5;
-		r_speed = distances[FORWARD_RIGHT] * 5;
+	if (distances[S_FORWARD_LEFT] < NO_WALL_T || distances[S_FORWARD_RIGHT] < NO_WALL_T) {
+		l_speed = distances[S_FORWARD_RIGHT] * 5;
+		r_speed = distances[S_FORWARD_RIGHT] * 5;
 	}
-	if (distances[FORWARD_LEFT] < DISTANCE_TO_WALL || distances[FORWARD_RIGHT] < DISTANCE_TO_WALL) {
+	if (distances[S_FORWARD_LEFT] < DISTANCE_TO_WALL || distances[S_FORWARD_RIGHT] < DISTANCE_TO_WALL) {
 		l_speed = 0;
 		r_speed = 0;
-		if (distances[FORWARD_RIGHT] > distances[FORWARD_LEFT]) {
-			wall_side = LEFT;
+		if (distances[S_FORWARD_RIGHT] > distances[S_FORWARD_LEFT]) {
+			wall_side = S_LEFT;
 
 		} else {
-			wall_side = RIGHT;
+			wall_side = S_RIGHT;
 		}
 		navigation_state = N_FOLLOW_WALL;
 		follow_wall_state = FW_ALIGN;
@@ -123,7 +126,7 @@ void move_forward(void)
 //ensuite on entre en mode follow_wall
 void align_wall(void)
 {
-	if (distances[FORWARD_RIGHT] > FAR && distances[FORWARD_LEFT] > FAR) {
+	if (distances[S_FORWARD_RIGHT] > FAR && distances[S_FORWARD_LEFT] > FAR) {
 		left_motor_set_speed(0);
 		right_motor_set_speed(0);
 		chprintf((BaseSequentialStream *) &SD3, "align far\n");
@@ -138,13 +141,13 @@ void align_wall(void)
 	}
 
 	int16_t target = 0;
-	int16_t current = distances[FORWARD_RIGHT] - distances[FORWARD_LEFT];
+	int16_t current = distances[S_FORWARD_RIGHT] - distances[S_FORWARD_LEFT];
 	int16_t error = target - current;
 	float kp = 5;
 	int16_t speed = kp * error;
 	l_speed = speed;
 	r_speed = -speed;
-	chprintf((BaseSequentialStream *) &SD3, "aligning: %5d %5d err %d\n", distances[FORWARD_LEFT], distances[FORWARD_RIGHT], error);
+	chprintf((BaseSequentialStream *) &SD3, "aligning: %5d %5d err %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], error);
 	if (abs(error) < ALIGN_TOL) {
 		l_speed = 0;
 		r_speed = 0;
@@ -155,7 +158,7 @@ void align_wall(void)
 
 void adjust_wall(void)
 {
-	if (distances[FORWARD_RIGHT] > FAR && distances[FORWARD_LEFT] > FAR) {
+	if (distances[S_FORWARD_RIGHT] > FAR && distances[S_FORWARD_LEFT] > FAR) {
 		l_speed = 0;
 		r_speed = 0;
 		chprintf((BaseSequentialStream *) &SD3, "ajust_wall: dist_prob\n");
@@ -169,17 +172,17 @@ void adjust_wall(void)
 		dist_prob_c = 0;
 	}
 	int16_t target = DISTANCE_TO_ADJUST;
-	int16_t current = (distances[FORWARD_RIGHT] + distances[FORWARD_LEFT]) / 2;
+	int16_t current = (distances[S_FORWARD_RIGHT] + distances[S_FORWARD_LEFT]) / 2;
 	int16_t error = current - target;
 	float kp = 5;
 	int16_t speed = kp * error;
 	l_speed = speed;
 	r_speed = speed;
-	chprintf((BaseSequentialStream *) &SD3, "ajusting: %5d %5d err %d\n", distances[FORWARD_LEFT], distances[FORWARD_RIGHT], error);
+	chprintf((BaseSequentialStream *) &SD3, "ajusting: %5d %5d err %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], error);
 	if (abs(error) < ALIGN_TOL) {
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
-		if (abs(distances[FORWARD_RIGHT] - distances[FORWARD_LEFT]) < ALIGN_TOL) {
+		if (abs(distances[S_FORWARD_RIGHT] - distances[S_FORWARD_LEFT]) < ALIGN_TOL) {
 			follow_wall_state = FW_ROTATE_P;
 		} else {
 			follow_wall_state = FW_ALIGN;
@@ -203,7 +206,7 @@ void rotate_90p(void)
 		speed = -ROTATION_SPEED;
 	}
 
-	if (wall_side == RIGHT) {
+	if (wall_side == S_RIGHT) {
 		l_speed = speed;
 		r_speed = -speed;
 	} else {
@@ -213,11 +216,17 @@ void rotate_90p(void)
 
 	if (error == 0) {
 		wall_dist = distances[wall_side];
-		if (abs(
-		DISTANCE_TO_ADJUST - wall_dist) < DISTANCE_TO_WALL_TOL) {
+		if (abs(DISTANCE_TO_ADJUST - wall_dist) < DISTANCE_TO_WALL_TOL_N) {
 			l_speed = FOLLOW_WALL_SPEED;
 			r_speed = FOLLOW_WALL_SPEED;
 			follow_wall_state = FW_FOLLOW;
+			no_side_c = 0;
+		} else {
+			no_side_c++;
+			if(no_side_c > NO_SIDE_T)  {
+				navigation_state = N_SOUND_SEARCH;
+				no_side_c = 0;
+			}
 		}
 		chprintf((BaseSequentialStream *) &SD3, "calibrating side %d, %d\n", wall_side, wall_dist);
 
@@ -242,7 +251,7 @@ void rotate_90s(void)
 		speed = -ROTATION_SPEED;
 	}
 
-	if (wall_side == LEFT) {
+	if (wall_side == S_LEFT) {
 		l_speed = speed;
 		r_speed = -speed;
 	} else {
@@ -263,7 +272,7 @@ void rotate_90s(void)
 //au meme temps on check le capteur avant: si mur devant -> turn around
 void follow_wall(void)
 {
-	uint16_t front_dist = (distances[FORWARD_LEFT] + distances[FORWARD_RIGHT]) / 2;
+	uint16_t front_dist = (distances[S_FORWARD_LEFT] + distances[S_FORWARD_RIGHT]) / 2;
 
 	chprintf((BaseSequentialStream *) &SD3, "following wall%d: %d/%d f: %d\n", wall_side, distances[wall_side], wall_dist, front_dist);
 
@@ -280,7 +289,7 @@ void follow_wall(void)
 
 	} else {
 		end_of_wall_c = 0;
-		if (abs(distances[wall_side] - wall_dist) > DISTANCE_TO_WALL_TOL) {
+		if (distances[wall_side] - wall_dist > DISTANCE_TO_WALL_TOL_F || distances[wall_side] - wall_dist < -DISTANCE_TO_WALL_TOL_N) {
 			correct_wall_c++;
 			if (correct_wall_c > CORRECT_WALL_T) {
 				l_speed = 0;
@@ -300,10 +309,10 @@ void follow_wall(void)
 	if (front_dist < DISTANCE_TO_WALL) {
 		l_speed = 0;
 		r_speed = 0;
-		if (wall_side == LEFT) {
-			wall_side = RIGHT;
+		if (wall_side == S_LEFT) {
+			wall_side = S_RIGHT;
 		} else {
-			wall_side = LEFT;
+			wall_side = S_LEFT;
 		}
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
@@ -327,7 +336,7 @@ void turn_around(void)
 		speed = -ROTATION_SPEED;
 	}
 
-	if (wall_side == RIGHT) {
+	if (wall_side == S_RIGHT) {
 		l_speed = -speed;
 		r_speed = speed;
 	} else {
@@ -338,10 +347,17 @@ void turn_around(void)
 	if (error == 0) {
 		wall_dist = distances[wall_side];
 		if (abs(
-		DISTANCE_TO_ADJUST - wall_dist) < DISTANCE_TO_WALL_TOL) {
+		DISTANCE_TO_ADJUST - wall_dist) < DISTANCE_TO_WALL_TOL_N) {
 			l_speed = FOLLOW_WALL_SPEED;
 			r_speed = FOLLOW_WALL_SPEED;
 			follow_wall_state = FW_FOLLOW;
+			no_side_c = 0;
+		} else {
+			no_side_c++;
+			if(no_side_c > NO_SIDE_T)  {
+				navigation_state = N_SOUND_SEARCH;
+				no_side_c = 0;
+			}
 		}
 		chprintf((BaseSequentialStream *) &SD3, "calibrating side %d, %d\n", wall_side, wall_dist);
 
@@ -380,7 +396,7 @@ void align_target(void)
 
 void approach_target(void)
 {
-	chprintf((BaseSequentialStream *) &SD3, "approaching target: %5d %5d err %d\n", distances[FORWARD_LEFT], distances[FORWARD_RIGHT], get_pattern_center() - IMAGE_CENTER);
+	chprintf((BaseSequentialStream *) &SD3, "approaching target: %5d %5d err %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], get_pattern_center() - IMAGE_CENTER);
 	l_speed = APPROACH_TARGET_SPEED;
 	r_speed = APPROACH_TARGET_SPEED;
 
@@ -388,7 +404,7 @@ void approach_target(void)
 		target_insight_state = TI_ALIGN;
 	}
 
-	if (distances[FORWARD_LEFT] < DISTANCE_TO_WALL || distances[FORWARD_RIGHT] < DISTANCE_TO_WALL) {
+	if (distances[S_FORWARD_LEFT] < DISTANCE_TO_WALL || distances[S_FORWARD_RIGHT] < DISTANCE_TO_WALL) {
 		l_speed = 0;
 		r_speed = 0;
 		navigation_state = N_ARRIVED;
@@ -429,6 +445,7 @@ static THD_FUNCTION(Navigator, arg)
 	while (1) {
 		time = chVTGetSystemTime();
 
+
 		if (get_pd_state() == PD_PICKED_UP) {
 			paused();
 			set_body_led(0);
@@ -436,6 +453,7 @@ static THD_FUNCTION(Navigator, arg)
 		} else {
 			set_body_led(1);
 		}
+
 
 		if (get_pattern_visible() && navigation_state != N_TARGET_INSIGHT) {
 			target_spotted_c++;
@@ -447,7 +465,7 @@ static THD_FUNCTION(Navigator, arg)
 		} else {
 			target_spotted_c = 0;
 		}
-
+		//navigation_state=N_DEBUG;
 		switch (navigation_state) {
 			case N_SOUND_SEARCH:
 				set_rgb_led(LED2, COLOR_TURKOISE);
@@ -494,7 +512,7 @@ static THD_FUNCTION(Navigator, arg)
 						rotate_90s();
 						break;
 					case FW_FOLLOW:
-						if(wall_side == LEFT) {
+						if(wall_side == S_LEFT) {
 							set_rgb_led(LED2, COLOR_YELLO);
 							set_rgb_led(LED4, COLOR_YELLO);
 							set_rgb_led(LED6, COLOR_DYELO);
@@ -548,6 +566,8 @@ static THD_FUNCTION(Navigator, arg)
 				set_rgb_led(LED6, COLOR_BLACK);
 				set_rgb_led(LED8, COLOR_BLACK);
 				paused();
+				break;
+			case N_DEBUG:
 				break;
 		}
 

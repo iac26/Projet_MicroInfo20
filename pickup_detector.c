@@ -10,9 +10,9 @@
 #include <pickup_detector.h>
 
 
-#define PERIOD_MS	50
+#define PERIOD_MS	100
 
-#define MAX_SAMPLES	10
+#define MAX_SAMPLES	5
 
 #define FILTER		2
 #define PICKUP_THRESH	5000
@@ -60,7 +60,7 @@ static THD_FUNCTION(PickupDetect, arg)
 
 	while (1) {
 		time = chVTGetSystemTime();
-
+		PROTEC(nb_samples, MAX_SAMPLES, "pickup1");
 		values_x[nb_samples] = get_acc_filtered(X_AXIS, FILTER);
 		values_y[nb_samples] = get_acc_filtered(Y_AXIS, FILTER);
 		values_z[nb_samples] = get_acc_filtered(Z_AXIS, FILTER);

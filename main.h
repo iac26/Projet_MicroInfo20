@@ -10,7 +10,8 @@ extern "C" {
 #include "parameter/parameter.h"
 
 
-void arrayTest(int index, int max, const char * msg);
+#define PROTEC(a, b, c)	if(!((a) < (b))) chSysHalt(c)
+
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;
