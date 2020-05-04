@@ -16,23 +16,17 @@ typedef enum {
 	BACK_OUTPUT,
 } BUFFER_NAME_t;
 
-float get_phase(void);
 
-float* get_phases(void);
-
-float get_clean_phase(void);
-
-uint8_t is_phase_ready(void);
-
-uint16_t get_index(void);
-uint16_t get_freq(void);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
 
-/*
- *	put the invoking thread into sleep until it can process the audio datas
- */
-void wait_send_to_computer(void);
+
+
+uint16_t get_sound_angle(void);
+
+int16_t get_sound_freq(void);
+
+uint8_t get_sound_valid(void);
 
 /*
  *	Returns the pointer to the BUFFER_NAME_t buffer asked

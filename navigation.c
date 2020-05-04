@@ -14,6 +14,7 @@
 #include <proximity_processing.h>
 #include <navigation.h>
 
+//#define DEBUG
 
 #define PERIOD_MS 	100
 #define KP 		1
@@ -23,6 +24,7 @@
 #define DISTANCE_TO_WALL	50 //mm
 #define DISTANCE_TO_ADJUST	30
 #define FOLLOW_WALL_SPEED	300
+#define SOUND_SEARCH_SPEED	200
 #define APPROACH_TARGET_SPEED	350
 #define	MOVE_SPEED		500
 #define ROTATION_SPEED		200
@@ -51,6 +53,8 @@
 #define TARGET_LOST_T		5
 
 #define NO_WALL_T		80
+#define SOUND_DIR_T		15
+#define SOUND_DIR_RED_T		5
 
 #define COLOR_BLUE		0, 0, 128	//ARRIVED
 #define COLOR_GREEN		0, 128, 28	//SOUND SEACH
@@ -66,10 +70,19 @@
 #define COLOR_DORANG		128, 32, 0	//ADJUST_WALL
 #define COLOR_BLACK		0, 0, 0		//PICKED UP
 
+#define COLOR_DDORAN		128, 16, 0		//PICKED UP
+
+#define LED_T1			30
+#define LED_T2			75
+#define LED_T3			105
+#define LED_T4			150
+
 static NAVIGATION_STATE_t navigation_state;
 static FOLLOW_WALL_STATE_t follow_wall_state;
 static TARGET_INSIGHT_STATE_t target_insight_state;
 static SENSOR_NAME_t wall_side;
+
+static int16_t sound_angle;
 
 static uint16_t wall_dist;
 static uint16_t align_far_c;
@@ -79,11 +92,59 @@ static uint16_t dist_prob_c;
 static uint16_t target_spotted_c;
 static uint16_t target_lost_c;
 static uint16_t no_side_c;
+static uint16_t sound_dir_red_c;
 
 static uint16_t* distances;
 
 static int16_t l_speed;
 static int16_t r_speed;
+
+void leds_angle(int16_t angle)
+{
+	if (angle > 0) {
+		if (angle > LED_T4) {
+			//L5
+			set_led(LED5, 1);
+
+		} else if (angle > LED_T3) {
+			//L6
+			set_rgb_led(LED6, COLOR_RED);
+
+		} else if (angle > LED_T2) {
+			//L7
+			set_led(LED7, 1);
+
+		} else if (angle > LED_T1) {
+			//L8
+			set_rgb_led(LED8, COLOR_RED);
+
+		} else {
+			//l1
+			set_led(LED1, 1);
+		}
+	} else {
+		if (angle < -LED_T4) {
+			//L5
+			set_led(LED5, 1);
+
+		} else if (angle < -LED_T3) {
+			//L4
+			set_rgb_led(LED4, COLOR_RED);
+
+		} else if (angle < -LED_T2) {
+			//3
+			set_led(LED3, 1);
+
+		} else if (angle < -LED_T1) {
+			//L2
+			set_rgb_led(LED2, COLOR_RED);
+
+		} else {
+			//l1
+			set_led(LED1, 1);
+		}
+	}
+}
 
 //essaye de se tourner vers le son
 //donc on a besoin d'un PID -> target proche de 0 et current phase +/-
@@ -91,9 +152,49 @@ static int16_t r_speed;
 //si pas de son valide-> wait
 void sound_search(void)
 {
-	l_speed = MOVE_SPEED;
-	r_speed = MOVE_SPEED;
-	navigation_state = N_MOVE_FORWARD;
+
+	sound_angle = get_sound_angle();
+	leds_angle(sound_angle);
+	if (get_sound_valid()) {
+
+		int16_t error = sound_angle;
+		float kp = 5;
+		int16_t speed = kp * error;
+		if (speed > SOUND_SEARCH_SPEED) {
+			speed = SOUND_SEARCH_SPEED;
+		}
+		if (speed < -SOUND_SEARCH_SPEED) {
+			speed = -SOUND_SEARCH_SPEED;
+		}
+		l_speed = -speed;
+		r_speed = speed;
+#ifdef DEBUG
+		chprintf((BaseSequentialStream *) &SD3, "sound search: %d freq: %d\n", sound_angle, get_sound_freq());
+#endif
+		if (abs(error) < SOUND_DIR_T) {
+			l_speed = 0;
+			r_speed = 0;
+			sound_dir_red_c++;
+			if (sound_dir_red_c > SOUND_DIR_RED_T) {
+				l_speed = MOVE_SPEED;
+				r_speed = MOVE_SPEED;
+				navigation_state = N_MOVE_FORWARD;
+				sound_dir_red_c = 0;
+			}
+		} else {
+			sound_dir_red_c = 0;
+		}
+	} else {
+#ifdef DEBUG
+		chprintf((BaseSequentialStream *) &SD3, "no valid sound\n");
+#endif
+		l_speed = 0;
+		r_speed = 0;
+	}
+
+	//l_speed = MOVE_SPEED;
+	//r_speed = MOVE_SPEED;
+	//navigation_state = N_MOVE_FORWARD;
 }
 
 //le robot avance en checkant si il y a un mur devant
@@ -102,7 +203,9 @@ void sound_search(void)
 // detection d'arrivee-> arrived
 void move_forward(void)
 {
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "moving  %5d %5d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT]);
+#endif
 
 	if (distances[S_FORWARD_LEFT] < NO_WALL_T || distances[S_FORWARD_RIGHT] < NO_WALL_T) {
 		l_speed = distances[S_FORWARD_RIGHT] * 5;
@@ -129,7 +232,9 @@ void align_wall(void)
 	if (distances[S_FORWARD_RIGHT] > FAR && distances[S_FORWARD_LEFT] > FAR) {
 		left_motor_set_speed(0);
 		right_motor_set_speed(0);
+#ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "align far\n");
+#endif
 		align_far_c++;
 		if (align_far_c > ALIGN_FAR_T) {
 			align_far_c = 0;
@@ -147,7 +252,9 @@ void align_wall(void)
 	int16_t speed = kp * error;
 	l_speed = speed;
 	r_speed = -speed;
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "aligning: %5d %5d err %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], error);
+#endif
 	if (abs(error) < ALIGN_TOL) {
 		l_speed = 0;
 		r_speed = 0;
@@ -161,7 +268,9 @@ void adjust_wall(void)
 	if (distances[S_FORWARD_RIGHT] > FAR && distances[S_FORWARD_LEFT] > FAR) {
 		l_speed = 0;
 		r_speed = 0;
+#ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "ajust_wall: dist_prob\n");
+#endif
 		dist_prob_c++;
 		if (dist_prob_c > DIST_PROB_T) {
 			dist_prob_c = 0;
@@ -178,7 +287,9 @@ void adjust_wall(void)
 	int16_t speed = kp * error;
 	l_speed = speed;
 	r_speed = speed;
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "ajusting: %5d %5d err %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], error);
+#endif
 	if (abs(error) < ALIGN_TOL) {
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
@@ -223,16 +334,19 @@ void rotate_90p(void)
 			no_side_c = 0;
 		} else {
 			no_side_c++;
-			if(no_side_c > NO_SIDE_T)  {
+			if (no_side_c > NO_SIDE_T) {
 				navigation_state = N_SOUND_SEARCH;
 				no_side_c = 0;
 			}
 		}
+#ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "calibrating side %d, %d\n", wall_side, wall_dist);
+#endif
 
 	} else {
-
+#ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "rotate parallel %d, %d\n", left_motor_get_pos(), right_motor_get_pos());
+#endif
 	}
 }
 
@@ -264,8 +378,9 @@ void rotate_90s(void)
 		r_speed = 0;
 		follow_wall_state = FW_ALIGN;
 	}
-
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "rotate senkrecht %d, %d\n", left_motor_get_pos(), right_motor_get_pos());
+#endif
 }
 // avance tout droit + correction directionnelle selon la distance sur le capteur droite ou gauche
 // variable "WALL_SIDE"
@@ -273,8 +388,9 @@ void rotate_90s(void)
 void follow_wall(void)
 {
 	uint16_t front_dist = (distances[S_FORWARD_LEFT] + distances[S_FORWARD_RIGHT]) / 2;
-
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "following wall%d: %d/%d f: %d\n", wall_side, distances[wall_side], wall_dist, front_dist);
+#endif
 
 	if (distances[wall_side] > NO_WALL_T) {
 		end_of_wall_c++;
@@ -354,16 +470,19 @@ void turn_around(void)
 			no_side_c = 0;
 		} else {
 			no_side_c++;
-			if(no_side_c > NO_SIDE_T)  {
+			if (no_side_c > NO_SIDE_T) {
 				navigation_state = N_SOUND_SEARCH;
 				no_side_c = 0;
 			}
 		}
+#ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "calibrating side %d, %d\n", wall_side, wall_dist);
+#endif
 
 	} else {
-
+#ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "rotate around %d, %d\n", left_motor_get_pos(), right_motor_get_pos());
+#endif
 	}
 }
 
@@ -386,7 +505,9 @@ void align_target(void)
 	int16_t speed = kp * error;
 	l_speed = -speed;
 	r_speed = speed;
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "aligning_target: %5d err %d\n", current, error);
+#endif
 	if (abs(error) < ALIGN_TOL) {
 		l_speed = 0;
 		r_speed = 0;
@@ -396,7 +517,9 @@ void align_target(void)
 
 void approach_target(void)
 {
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "approaching target: %5d %5d err %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], get_pattern_center() - IMAGE_CENTER);
+#endif
 	l_speed = APPROACH_TARGET_SPEED;
 	r_speed = APPROACH_TARGET_SPEED;
 
@@ -416,7 +539,9 @@ void paused(void)
 {
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "paused\n");
+#endif
 }
 
 void execute(void)
@@ -427,8 +552,9 @@ void execute(void)
 
 void arrived(void)
 {
+#ifdef DEBUG
 	chprintf((BaseSequentialStream *) &SD3, "ARRIVED!!!!\n");
-
+#endif
 }
 
 static THD_WORKING_AREA(waNavigator, 512);
@@ -445,7 +571,6 @@ static THD_FUNCTION(Navigator, arg)
 	while (1) {
 		time = chVTGetSystemTime();
 
-
 		if (get_pd_state() == PD_PICKED_UP) {
 			paused();
 			set_body_led(0);
@@ -454,11 +579,12 @@ static THD_FUNCTION(Navigator, arg)
 			set_body_led(1);
 		}
 
-
 		if (get_pattern_visible() && navigation_state != N_TARGET_INSIGHT) {
 			target_spotted_c++;
 			if (target_spotted_c > TARGET_SPOTTED_T) {
+#ifdef DEBUG
 				chprintf((BaseSequentialStream *) &SD3, "visible target: size: %d, dir: %d\n", get_pattern_width(), get_pattern_center() - IMAGE_CENTER);
+#endif
 				navigation_state = N_TARGET_INSIGHT;
 				target_insight_state = TI_ALIGN;
 			}
@@ -468,17 +594,19 @@ static THD_FUNCTION(Navigator, arg)
 		//navigation_state=N_DEBUG;
 		switch (navigation_state) {
 			case N_SOUND_SEARCH:
+				clear_leds();
+				set_rgb_led(LED2, COLOR_DDORAN);
+				set_rgb_led(LED4, COLOR_DDORAN);
+				set_rgb_led(LED6, COLOR_DDORAN);
+				set_rgb_led(LED8, COLOR_DDORAN);
+				sound_search();
+				break;
+			case N_MOVE_FORWARD:
+				clear_leds();
 				set_rgb_led(LED2, COLOR_TURKOISE);
 				set_rgb_led(LED4, COLOR_TURKOISE);
 				set_rgb_led(LED6, COLOR_TURKOISE);
 				set_rgb_led(LED8, COLOR_TURKOISE);
-				sound_search();
-				break;
-			case N_MOVE_FORWARD:
-				set_rgb_led(LED2, COLOR_RED);
-				set_rgb_led(LED4, COLOR_RED);
-				set_rgb_led(LED6, COLOR_RED);
-				set_rgb_led(LED8, COLOR_RED);
 				move_forward();
 				break;
 			case N_FOLLOW_WALL:
@@ -512,7 +640,7 @@ static THD_FUNCTION(Navigator, arg)
 						rotate_90s();
 						break;
 					case FW_FOLLOW:
-						if(wall_side == S_LEFT) {
+						if (wall_side == S_LEFT) {
 							set_rgb_led(LED2, COLOR_YELLO);
 							set_rgb_led(LED4, COLOR_YELLO);
 							set_rgb_led(LED6, COLOR_DYELO);

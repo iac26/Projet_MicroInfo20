@@ -19,6 +19,8 @@
 #define IM(i) 		(2*(i)+1)
 #define MIC(i, m)	(4*(i)+(m))
 
+#define RAD2DEG(a)	(180/M_PI*(a))
+
 //semaphore
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
 
@@ -33,17 +35,12 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
-static float phase_dif;
+static float phase_dif_lr;
+static float phase_dif_fb;
 static uint8_t valid_phase;
 
-static float clean_phase;
 static uint16_t freq_i;
-static uint16_t freq_ctrl;
-static uint16_t freq;
-static uint8_t phase_ready;
-static uint16_t phase_count;
-static uint16_t phase_control;
-static float phase_samples[NB_SAMPLES];
+static int16_t angle;
 
 /*
  *	Wrapper to call a very optimized fft function provided by ARM
@@ -58,7 +55,6 @@ void doFFT_optimized(uint16_t size, float* complex_buffer)
 
 float modulo_cercle(float angle)
 {
-
 	while (angle > M_PI) {
 		angle -= 2 * M_PI;
 	}
@@ -71,20 +67,25 @@ float modulo_cercle(float angle)
 void detect_phase(void)
 {
 	//detect max index
-	uint16_t ix = 0;
-	float max = 0;
+	volatile uint16_t ix = 0;
+	volatile float max = 0;
 	for (uint16_t i = 0; i < FFT_SIZE / 2; i++) {
-		if (micLeft_output[i] > max) {
+		if (micBack_output[i] > max) {
 			ix = i;
-			max = micLeft_output[i];
+			max = micBack_output[i];
 		}
+
 	}
 	if (max > DET_THRESH) {
 
-		float phase_1 = atan2(micLeft_cmplx_input[IM(ix)], micLeft_cmplx_input[RE(ix)]);
-		float phase_2 = atan2(micRight_cmplx_input[IM(ix)], micRight_cmplx_input[RE(ix)]);
-		phase_dif = modulo_cercle(phase_1 - phase_2);
+		float phase_l = atan2(micLeft_cmplx_input[IM(ix)], micLeft_cmplx_input[RE(ix)]);
+		float phase_r = atan2(micRight_cmplx_input[IM(ix)], micRight_cmplx_input[RE(ix)]);
+		float phase_f = atan2(micFront_cmplx_input[IM(ix)], micFront_cmplx_input[RE(ix)]);
+		float phase_b = atan2(micBack_cmplx_input[IM(ix)], micBack_cmplx_input[RE(ix)]);
+		phase_dif_lr = modulo_cercle(phase_l - phase_r);
+		phase_dif_fb = modulo_cercle(phase_f - phase_b);
 		valid_phase = 1;
+		angle = RAD2DEG(atan2(phase_dif_lr, phase_dif_fb));
 		freq_i = ix;
 	} else {
 		valid_phase = 0;
@@ -92,71 +93,23 @@ void detect_phase(void)
 
 }
 
-uint16_t get_index(void)
+uint16_t get_sound_angle(void)
 {
-	return freq_i;
+	return angle;
 }
 
-uint16_t get_freq(void)
+int16_t get_sound_freq(void)
 {
-	return freq;
+	return 15.139 * freq_i + 5.4228;
 }
 
-float get_clean_phase(void)
-{
-	return clean_phase;
-}
-
-uint8_t is_phase_ready(void)
-{
-	return phase_ready;
-}
-
-float* get_phases(void)
-{
-	return phase_samples;
+uint8_t get_sound_valid(void) {
+	return valid_phase;
 }
 
 void audio_processing_start(void)
 {
 	mic_start(&processAudioData);
-}
-
-int cleanup_phase(void)
-{
-	phase_control++;
-	uint8_t ret_val;
-	if (phase_dif < PHASE_MAX && phase_dif > -PHASE_MAX && valid_phase && (abs(freq_ctrl - freq_i) < FREQ_THRESH || phase_count == 0)) {
-		if (phase_count == 0) {
-			freq_ctrl = freq_i;
-			freq = 15.139 * freq_i + 5.423;
-		}
-		PROTEC(phase_count, NB_SAMPLES, "audio1");
-		phase_samples[phase_count] = phase_dif;
-		phase_count++;
-		phase_control = 0;
-	}
-	if (phase_count >= NB_SAMPLES) {
-		float sum = 0;
-		for (uint16_t i = 0; i < NB_SAMPLES; i++) {
-			sum += phase_samples[i];
-		}
-		phase_dif = sum / NB_SAMPLES;
-		phase_count = 0;
-		phase_ready = 1;
-		clean_phase = phase_dif;
-
-		ret_val = 1;
-	} else {
-		ret_val = 0;
-	}
-	if (phase_control > CONTROL_THRESH) {
-		phase_ready = 0;
-		phase_control = CONTROL_THRESH;
-	}
-
-	return ret_val;
-
 }
 
 /*
@@ -180,6 +133,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 	 */
 	static volatile uint16_t fft_index = 0;
 	static volatile uint16_t data_index = 0;
+	volatile uint16_t n_s_copy = num_samples;
 
 	while (1) {
 		PROTEC(RE(fft_index), 2*FFT_SIZE, "audioRE");
@@ -196,7 +150,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 
 		fft_index++;
 		data_index++;
-		uint8_t need_to_break = 0;
+		volatile uint8_t need_to_break = 0;
 		if (fft_index >= FFT_SIZE) {
 			fft_index = 0;
 			need_to_break = 1;
@@ -205,7 +159,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 			data_index = 0;
 			return;
 		}
-		if(need_to_break) {
+		if (need_to_break) {
 			break;
 		}
 
@@ -221,20 +175,16 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 	arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
 
 	detect_phase();
-	if (cleanup_phase()) {
-		chBSemSignal(&sendToComputer_sem);
+#ifdef DEBUG
+	if (valid_phase) {
+		//chprintf((BaseSequentialStream *) &SD3, "LR: %4f, FB %4f, F:%03d\n", phase_dif_lr, phase_dif_fb, freq_i);
+		chSequentialStreamWrite((BaseSequentialStream * ) &SD3, (uint8_t* )"START", 5);
+		chSequentialStreamWrite((BaseSequentialStream * ) &SD3, (uint8_t* ) &phase_dif_lr, sizeof(float));
+		chSequentialStreamWrite((BaseSequentialStream * ) &SD3, (uint8_t* ) &phase_dif_fb, sizeof(float));
+		chSequentialStreamWrite((BaseSequentialStream * ) &SD3, (uint8_t* ) &angle, sizeof(int16_t));
 	}
+#endif
 
-}
-
-float get_phase(void)
-{
-	return phase_dif;
-}
-
-void wait_send_to_computer(void)
-{
-	chBSemWait(&sendToComputer_sem);
 }
 
 float* get_audio_buffer_ptr(BUFFER_NAME_t name)

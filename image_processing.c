@@ -11,11 +11,12 @@
 
 //#define SEND_IMAGES
 
-#define IMAGE_WIDTH 	(PO8030_MAX_WIDTH) //160 when subsamples
+#define MARGIN		10
+#define IMAGE_WIDTH 	(PO8030_MAX_WIDTH-100) //160 when subsamples
 #define IMAGE_HEIGHT 	160 //40 when subsampled
 #define WIDTH		(IMAGE_WIDTH/4)
 #define HEIGHT		(IMAGE_HEIGHT/4)
-#define CORNER_X	(PO8030_MAX_WIDTH/2 - IMAGE_WIDTH/2)
+#define CORNER_X	((PO8030_MAX_WIDTH/2)-(IMAGE_WIDTH/2))
 #define CORNER_Y	20
 #define IX(x, y) 	((x) + WIDTH * (y))	//to access pixels stored line by line
 
@@ -248,7 +249,7 @@ static THD_FUNCTION(CaptureImage, arg)
 
 	while (1) {
 		//starts a capture
-		dcmi_capture_start();
+		//dcmi_capture_start();
 
 		//waits for the capture to be done
 		wait_image_ready();
