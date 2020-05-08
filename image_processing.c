@@ -20,7 +20,7 @@
 #define CORNER_Y	20
 #define IX(x, y) 	((x) + WIDTH * (y))	//to access pixels stored line by line
 
-#define EDGE_TOL  	60
+#define EDGE_TOL  	40
 #define	PATTERN_TOL 	4
 #define	NB_TOL  	2
 
@@ -187,7 +187,7 @@ uint8_t analyse_col(uint8_t* image, uint16_t x)
  *
  * @param image		pointer to the image array
  */
-void search_pattern(volatile uint8_t * image)
+void search_pattern(uint8_t * image)
 {
 	//chprintf((BaseSequentialStream *) &SD3, "new_search\n");
 	//the idea is the search the center of the pattern by dichotomy in the image
@@ -307,7 +307,7 @@ static THD_FUNCTION(ProcessImage, arg)
 		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)&pattern_visible, sizeof(uint8_t));
 		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)&pattern_center, sizeof(uint16_t));
 		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)&pattern_width, sizeof(uint16_t));
-		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)frame_buffer, sizeof(uint8_t) * size);
+		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)img_buff_ptr, sizeof(uint8_t) * size);
 #endif
 
 	}

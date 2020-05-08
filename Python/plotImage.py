@@ -4,7 +4,7 @@ import struct
 import cv2
 import time
 
-
+""" c'est une bonne idee de desactiver tous les modules sauf image processing sinon trop lent..."""
 
 #maximum value for an uint8
 max_value = 255
@@ -88,14 +88,14 @@ def readUint8Serial(port):
         return [], 0, 0, 0
 
 try:
-	reader = serial.Serial('com5', 115200)
+	reader = serial.Serial('com4', 115200)
 except:
 	print('error')
 	time.sleep(1)
 	quit()
 
 def analyse_col(x):
-	EDGE_T = 80
+	EDGE_T = 40
 	PATTERN_TOL = 4
 	NB_TOL = 2
 	last_rise = 0

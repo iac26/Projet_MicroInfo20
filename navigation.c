@@ -14,11 +14,11 @@
 #include <proximity_processing.h>
 #include <navigation.h>
 
-//#define DEBUG
+
 
 #define PERIOD_MS 		100
 
-//#define DEBUG
+#define DEBUG
 
 #define DISTANCE_TO_WALL	50
 #define DISTANCE_TO_ADJUST	30
@@ -93,6 +93,7 @@ static uint16_t end_of_wall_c;
 static uint16_t correct_wall_c;
 static uint16_t dist_prob_c;
 static uint16_t target_spotted_c;
+static uint16_t target_spotted_f_c;
 static uint16_t target_lost_c;
 static uint16_t no_side_c;
 static uint16_t sound_dir_red_c;
@@ -222,6 +223,8 @@ void sound_locate_init(void)
 void sound_locate(void)
 {
 
+	l_speed = 0;
+	r_speed = 0;
 	if (get_new_refined()) {
 		sound_angle = get_refined_angle();
 		leds_angle(sound_angle);
@@ -562,8 +565,7 @@ void turn_around(void)
 
 	if (error == 0) {
 		wall_dist = distances[wall_side];
-		if (abs(
-		DISTANCE_TO_ADJUST - wall_dist) < DISTANCE_TO_WALL_TOL_N) {
+		if (abs(DISTANCE_TO_ADJUST - wall_dist) < DISTANCE_TO_WALL_TOL_N) {
 			l_speed = FOLLOW_WALL_SPEED;
 			r_speed = FOLLOW_WALL_SPEED;
 			follow_wall_state = FW_FOLLOW;
@@ -624,7 +626,7 @@ void align_target(void)
 void approach_target(void)
 {
 #ifdef DEBUG
-	chprintf((BaseSequentialStream *) &SD3, "approaching target: %5d %5d err %d w %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], get_pattern_center() - IMAGE_CENTER, get_pattern_width());
+	chprintf((BaseSequentialStream *) &SD3, "approaching target: %5d %5d err %d w %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], get_pattern_center() - get_image_center(), get_pattern_width());
 #endif
 	l_speed = APPROACH_TARGET_SPEED;
 	r_speed = APPROACH_TARGET_SPEED;
@@ -730,11 +732,11 @@ static THD_FUNCTION(Navigator, arg)
 			set_body_led(1);
 		}
 
-		if (get_pattern_visible() && (navigation_state == N_SOUND_SEARCH || navigation_state == N_MOVE_FORWARD || (navigation_state == N_FOLLOW_WALL && (follow_wall_state == FW_ADJUST || follow_wall_state == FW_ALIGN)))) {
+		if (get_pattern_visible() && (navigation_state == N_SOUND_SEARCH || navigation_state == N_MOVE_FORWARD)) {
 			target_spotted_c++;
 			if (target_spotted_c > TARGET_SPOTTED_T) {
 #ifdef DEBUG
-				chprintf((BaseSequentialStream *) &SD3, "visible target: size: %d, dir: %d\n", get_pattern_width(), get_pattern_center() - IMAGE_CENTER);
+				chprintf((BaseSequentialStream *) &SD3, "visible target: size: %d, dir: %d\n", get_pattern_width(), get_pattern_center() - get_image_center());
 #endif
 				navigation_state = N_TARGET_INSIGHT;
 				target_insight_state = TI_ALIGN;
@@ -742,7 +744,18 @@ static THD_FUNCTION(Navigator, arg)
 		} else {
 			target_spotted_c = 0;
 		}
-		//navigation_state=N_DEBUG;
+
+		if (get_pattern_visible() && (navigation_state == N_FOLLOW_WALL && (follow_wall_state == FW_ADJUST || follow_wall_state == FW_ALIGN))) {
+			target_spotted_f_c++;
+			if (target_spotted_c > TARGET_SPOTTED_T) {
+#ifdef DEBUG
+				chprintf((BaseSequentialStream *) &SD3, "visible target_f: size: %d, dir: %d\n", get_pattern_width(), get_pattern_center() - get_image_center());
+#endif
+				navigation_state = N_ARRIVED;
+			}
+		} else {
+			target_spotted_f_c = 0;
+		}
 		switch (navigation_state) {
 			case N_SOUND_SEARCH:
 				clear_leds();
@@ -859,8 +872,6 @@ static THD_FUNCTION(Navigator, arg)
 				set_rgb_led(LED6, COLOR_BLACK);
 				set_rgb_led(LED8, COLOR_BLACK);
 				paused();
-				break;
-			case N_DEBUG:
 				break;
 		}
 

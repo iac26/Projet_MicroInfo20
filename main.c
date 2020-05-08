@@ -66,7 +66,7 @@ int main(void)
 	serial_start();
 	audio_processing_start();
 
-	chprintf((BaseSequentialStream *) &SD3, "STARTUP\n");
+	chprintf((BaseSequentialStream *) &SD3, "startup\n");
 
 	//modules init
 	proximity_processing_start();

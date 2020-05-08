@@ -18,6 +18,8 @@ data_lr = [0]
 data_fb = [0]
 data_i = [0]
 
+save = open("save.txt", "w+")
+
 class Reader(threading.Thread):
     def __init__(self, com, baud):
         threading.Thread.__init__(self)
@@ -73,7 +75,7 @@ class Reader(threading.Thread):
             lr = struct.unpack('<f', self.ser.read(4))[0]
             fb = struct.unpack('<f', self.ser.read(4))[0]
             i = struct.unpack('<h', self.ser.read(2))[0]
-            print("{}: {} || {}:{}".format(cnt,i, lr, fb))
+            save.write("{}:{}\n".format(lr, fb))
             cnt+=1
             data_lr.append(lr)
             data_fb.append(fb)
@@ -81,7 +83,7 @@ class Reader(threading.Thread):
 
 
 class Scope(object):
-    def __init__(self, ax, maxt=2, dt=0.02):
+    def __init__(self, ax, maxt=2, dt=0.002):
         self.ax = ax
         self.dt = dt
         self.maxt = maxt
@@ -89,7 +91,7 @@ class Scope(object):
         self.ydata = [0]
         self.line = Line2D(self.tdata, self.ydata)
         self.ax.add_line(self.line)
-        self.ax.set_ylim(-1.1, 1.1)
+        self.ax.set_ylim(-3.2, 3.2)
         self.ax.set_xlim(0, self.maxt)
 
     def update(self, y):
@@ -127,9 +129,9 @@ def data_fb_getter():
 
 fig, ax = plt.subplots()
 scope = Scope(ax)
-fig.suptitle('FRONT_BACK', fontsize=16)
+fig.suptitle('FRONT-BACK', fontsize=12)
 
-red = Reader("com5", 115200)
+red = Reader("com10", 115200)
 
 red.start()
 
@@ -137,11 +139,18 @@ red.start()
 ani = animation.FuncAnimation(fig, scope.update, data_fb_getter, interval=10,
                               blit=True)
 
-fig2, ax2 = plt.subplots()
+fig, ax2 = plt.subplots()
 scope2 = Scope(ax2)
-fig2.suptitle('LEFT_RIGHT', fontsize=16)
+fig.suptitle('LEFT-RIGHT', fontsize=12)
 # pass a generator in "emitter" to produce data for the update func
-ani2 = animation.FuncAnimation(fig2, scope2.update, data_lr_getter, interval=10,
+ani2 = animation.FuncAnimation(fig, scope2.update, data_lr_getter, interval=10,
                               blit=True)
+
+def onclick(event):
+    save.close()
+    plt.close()
+    quit(0)
+
+cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
 plt.show()

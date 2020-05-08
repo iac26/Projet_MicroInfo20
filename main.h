@@ -15,6 +15,7 @@ extern "C" {
 
 //debug macro to search for memory leaks
 #define PROTEC(a, b, c)	if(!((a) < (b))) while(1) set_front_led(1)
+//#define PROTEC(a, b, c)	if(!((a) < (b))) chSysHalt(c)
 
 
 /** Robot wide IPC bus. */

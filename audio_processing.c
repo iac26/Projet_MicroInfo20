@@ -9,6 +9,8 @@
 #include <arm_math.h>
 #include <arm_const_structs.h>
 
+//#define SEND_AUDIO
+
 //MAcros
 #define NB_SAMPLES 	50
 #define NO_PHASE_T	5
@@ -252,7 +254,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 		}
 	}
 
-#ifdef DEBUG
+#ifdef SEND_AUDIO
 	if (valid_phase) {
 		//chprintf((BaseSequentialStream *) &SD3, "LR: %4f, FB %4f, F:%03d\n", phase_dif_lr, phase_dif_fb, freq_i);
 		chSequentialStreamWrite((BaseSequentialStream * ) &SD3, (uint8_t* )"START", 5);
