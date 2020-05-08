@@ -12,15 +12,13 @@
 //#define SEND_IMAGES
 
 #define MARGIN		10
-#define IMAGE_WIDTH 	(PO8030_MAX_WIDTH-100) //160 when subsamples
+#define IMAGE_WIDTH 	(PO8030_MAX_WIDTH) //160 when subsamples
 #define IMAGE_HEIGHT 	160 //40 when subsampled
 #define WIDTH		(IMAGE_WIDTH/4)
 #define HEIGHT		(IMAGE_HEIGHT/4)
 #define CORNER_X	((PO8030_MAX_WIDTH/2)-(IMAGE_WIDTH/2))
 #define CORNER_Y	20
 #define IX(x, y) 	((x) + WIDTH * (y))	//to access pixels stored line by line
-
-//macros pour traitement d'image
 
 #define EDGE_TOL  	60
 #define	PATTERN_TOL 	4
@@ -53,10 +51,7 @@ static int16_t rise_moy;
 static int16_t r2f_moy;
 static int16_t f2r_moy;
 
-
 static uint8_t *img_buff_ptr;
-
-static uint8_t frame_buffer[HEIGHT*WIDTH];
 
 static uint8_t subdivision;
 static int16_t prev_larg;
@@ -67,13 +62,20 @@ static uint8_t fails;
 static int16_t first_col;
 static int16_t last_col;
 static uint16_t pattern_width;
-static uint8_t pattern_visible=0;
+static uint8_t pattern_visible = 0;
 static uint16_t pattern_center;
-
 
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
-uint8_t analyse_col(volatile uint8_t* image, volatile uint16_t x)
+/*
+ * @brief		analyses one column of the image in search of the pattern
+ *
+ * @param image		pointer to the image array
+ * @param x		column to analyse
+ *
+ * @return		1: pattern found, 0: pattern not found
+ */
+uint8_t analyse_col(uint8_t* image, uint16_t x)
 {
 	nb_rise = 0;
 	nb_fall = 0;
@@ -82,9 +84,14 @@ uint8_t analyse_col(volatile uint8_t* image, volatile uint16_t x)
 	last_fall = 0;
 	last_rise = 0;
 	volatile uint16_t y = 0;
+	//we start by searching for edges in the column
+	//we store the distances between the edges in four arrays
 	while (y < (HEIGHT - 1)) {
+		PROTEC(IX(x, y), WIDTH*HEIGHT, "too_far");
+		PROTEC(IX(x, y+1), WIDTH*HEIGHT, "too_far2");
 		volatile int16_t px1 = image[IX(x, y)];
-		volatile int16_t px2 = image[IX(x, y+1)];
+		volatile int16_t px2 = image[IX(x, y + 1)];
+		//rising edge
 		if ((px1 - px2) < -EDGE_TOL) {
 			//chprintf((BaseSequentialStream *) &SD3, "%d: found_rise %d: %d\n", x, y,  px1-px2);
 			if (nb_rise == 0) {
@@ -108,6 +115,7 @@ uint8_t analyse_col(volatile uint8_t* image, volatile uint16_t x)
 
 			}
 		}
+		//falling edge
 		if ((px1 - px2) > EDGE_TOL) {
 			//chprintf((BaseSequentialStream *) &SD3, "%d found_fall %d: %d\n", x, y, px1-px2);
 			if (nb_fall == 0) {
@@ -140,7 +148,7 @@ uint8_t analyse_col(volatile uint8_t* image, volatile uint16_t x)
 	rise_moy = 0;
 	r2f_moy = 0;
 	f2r_moy = 0;
-
+	//we calculate the average values of the edge to edge distances
 	if (nb_rise > 1 && nb_fall > 1 && nb_r2f > 0 && nb_f2r > 0) {
 		uint8_t i;
 		for (i = 0; i < nb_fall - 1; i++) {
@@ -163,6 +171,7 @@ uint8_t analyse_col(volatile uint8_t* image, volatile uint16_t x)
 		}
 		f2r_moy /= nb_f2r;
 
+		//the edge to edge distances must correspond to the pattern: black and white stripes the whites ones are twice as thick as the black ones
 		if (abs(fall_moy - rise_moy) < PATTERN_TOL && abs(r2f_moy / 2 - f2r_moy) < PATTERN_TOL && nb_rise > NB_TOL) {
 			//chprintf((BaseSequentialStream *) &SD3, "%d: valid_col\n", x);
 			return 1;
@@ -172,9 +181,16 @@ uint8_t analyse_col(volatile uint8_t* image, volatile uint16_t x)
 
 }
 
+
+/*
+ * @brief		search for the pattern in the image
+ *
+ * @param image		pointer to the image array
+ */
 void search_pattern(volatile uint8_t * image)
 {
 	//chprintf((BaseSequentialStream *) &SD3, "new_search\n");
+	//the idea is the search the center of the pattern by dichotomy in the image
 	subdivision = START_SUB;
 	larg = WIDTH;
 	found = 0;
@@ -192,7 +208,7 @@ void search_pattern(volatile uint8_t * image)
 		}
 		subdivision *= SUB_FACTOR;
 	}
-
+	//once the center of the pattern is found we explore both sides to search for the end of the pattern
 	if (found) {
 		last_col = found;
 		first_col = found;
@@ -234,6 +250,9 @@ void search_pattern(volatile uint8_t * image)
 	}
 }
 
+/*
+ * @brief		image acquisition thread
+ */
 static THD_WORKING_AREA(waCaptureImage, 256);
 static THD_FUNCTION(CaptureImage, arg)
 {
@@ -242,14 +261,14 @@ static THD_FUNCTION(CaptureImage, arg)
 	(void) arg;
 
 	po8030_advanced_config(FORMAT_YYYY, CORNER_X, CORNER_Y, IMAGE_WIDTH, IMAGE_HEIGHT, SUBSAMPLING_X4, SUBSAMPLING_X4);
-	dcmi_disable_double_buffering();
+	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 	po8030_set_awb(1);
 
 	while (1) {
 		//starts a capture
-		//dcmi_capture_start();
+		dcmi_capture_start();
 
 		//waits for the capture to be done
 		wait_image_ready();
@@ -260,6 +279,9 @@ static THD_FUNCTION(CaptureImage, arg)
 	}
 }
 
+/*
+ * @brief		image processing thread
+ */
 static THD_WORKING_AREA(waProcessImage, 1024);
 static THD_FUNCTION(ProcessImage, arg)
 {
@@ -267,22 +289,17 @@ static THD_FUNCTION(ProcessImage, arg)
 	chRegSetThreadName("ProcessImage");
 	(void) arg;
 
-
 	while (1) {
 		//waits until an image has been captured
 		chBSemWait(&image_ready_sem);
-		//gets the pointer to the array filled with the last image in RGB565
+		//gets the pointer to the array filled with the last image in YYYY
 		img_buff_ptr = dcmi_get_last_image_ptr();
-		//chprintf((BaseSequentialStream *) &SD3, "before_IMSEARCH\n");
-		for (uint16_t i = 0; i < HEIGHT*WIDTH; i++) {
-			frame_buffer[i] = img_buff_ptr[i];
-		}
 
-		search_pattern(frame_buffer);
-		//chprintf((BaseSequentialStream *) &SD3, "after_IMSEARCH\n");
+		search_pattern(img_buff_ptr);
 
 		//chprintf((BaseSequentialStream *) &SD3, "%d: v: %3d c:%3d w:%3d\n", frames_processed, pattern_visible, pattern_center, pattern_width);
 
+		//send images and pattern position to computer for debug
 #ifdef SEND_IMAGES
 		uint16_t size = WIDTH*HEIGHT; //corrected size for subsampling
 		chSequentialStreamWrite((BaseSequentialStream *) &SD3, (uint8_t*)"START", 5);
@@ -310,6 +327,12 @@ uint16_t get_pattern_width(void)
 {
 	return pattern_width;
 }
+
+uint16_t get_image_center(void)
+{
+	return WIDTH / 2;
+}
+
 
 void image_processing_start(void)
 {

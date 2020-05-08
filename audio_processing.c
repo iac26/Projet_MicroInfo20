@@ -10,11 +10,13 @@
 #include <arm_const_structs.h>
 
 //MAcros
-#define NB_SAMPLES 	1
+#define NB_SAMPLES 	50
+#define NO_PHASE_T	5
+
 #define PHASE_MAX 	3
 #define CONTROL_THRESH	5
 #define FREQ_THRESH	5
-#define DET_THRESH	30000
+#define DET_THRESH	15000
 #define RE(i)		(2*(i))
 #define IM(i) 		(2*(i)+1)
 #define MIC(i, m)	(4*(i)+(m))
@@ -22,7 +24,16 @@
 #define RAD2DEG(a)	(180/M_PI*(a))
 
 //semaphore
-static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
+
+
+static uint8_t finding_dir;
+static int16_t directions[NB_SAMPLES];
+static uint8_t refined_valid;
+static uint8_t new_refined;
+static uint8_t dir_i;
+static uint16_t no_phase_c;
+static int16_t refined_angle;
+
 
 //2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
 static float micLeft_cmplx_input[2 * FFT_SIZE];
@@ -39,6 +50,7 @@ static float phase_dif_lr;
 static float phase_dif_fb;
 static uint8_t valid_phase;
 
+
 static uint16_t freq_i;
 static int16_t angle;
 
@@ -53,6 +65,9 @@ void doFFT_optimized(uint16_t size, float* complex_buffer)
 
 }
 
+/*
+ * @brief		utility function to keep angles between -pi and pi
+ */
 float modulo_cercle(float angle)
 {
 	while (angle > M_PI) {
@@ -64,6 +79,9 @@ float modulo_cercle(float angle)
 	return angle;
 }
 
+/*
+ * @brief		compute the sound direction using the the argument of the complex FFTs of the four microphones
+ */
 void detect_phase(void)
 {
 	//detect max index
@@ -93,23 +111,69 @@ void detect_phase(void)
 
 }
 
-uint16_t get_sound_angle(void)
+/*
+ * @brief		refine the sound direction measurement by computing the median value over NB_SAMPLES samples
+ */
+void refine_dir(void)
+{
+	if (dir_i == 0) {
+		directions[dir_i] = angle;
+		dir_i++;
+	} else if (dir_i >= NB_SAMPLES) {
+		refined_angle = (directions[NB_SAMPLES/2] + directions[NB_SAMPLES/2-1])/2;
+		refined_valid = 1;
+		new_refined = 1;
+		dir_i = 0;
+	} else {
+		for (uint16_t i = 0; i < dir_i; i++) {
+			if (angle < directions[i]) {
+				for (uint16_t j = dir_i; j > i; j--) {
+					directions[j] = directions[j - 1];
+				}
+				directions[i] = angle;
+				dir_i++;
+				return;
+			}
+		}
+		directions[dir_i] = angle;
+		dir_i++;
+	}
+}
+
+uint8_t get_refined_valid(void) {
+	return refined_valid;
+}
+
+uint8_t get_new_refined(void) {
+	return new_refined;
+}
+
+int16_t get_refined_angle(void)
+{
+	new_refined = 0;
+	return refined_angle;
+}
+
+int16_t get_sound_angle(void)
 {
 	return angle;
 }
 
-int16_t get_sound_freq(void)
+uint16_t get_sound_freq(void)
 {
 	return 15.139 * freq_i + 5.4228;
 }
 
-uint8_t get_sound_valid(void) {
+uint8_t get_sound_valid(void)
+{
 	return valid_phase;
 }
 
 void audio_processing_start(void)
 {
 	mic_start(&processAudioData);
+	finding_dir = 0;
+	valid_phase = 0;
 }
 
 /*
@@ -133,7 +197,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 	 */
 	static volatile uint16_t fft_index = 0;
 	static volatile uint16_t data_index = 0;
-	volatile uint16_t n_s_copy = num_samples;
+	//volatile uint16_t n_s_copy = num_samples;
 
 	while (1) {
 		PROTEC(RE(fft_index), 2*FFT_SIZE, "audioRE");
@@ -175,6 +239,19 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 	arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
 
 	detect_phase();
+	if (valid_phase) {
+		refine_dir();
+		no_phase_c = 0;
+	} else {
+		no_phase_c++;
+		if (no_phase_c > NO_PHASE_T) {
+			no_phase_c = 0;
+			dir_i = 0;
+			refined_valid = 0;
+			new_refined = 0;
+		}
+	}
+
 #ifdef DEBUG
 	if (valid_phase) {
 		//chprintf((BaseSequentialStream *) &SD3, "LR: %4f, FB %4f, F:%03d\n", phase_dif_lr, phase_dif_fb, freq_i);

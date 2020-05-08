@@ -16,12 +16,11 @@
 
 //#define DEBUG
 
-#define PERIOD_MS 	100
-#define KP 		1
+#define PERIOD_MS 		100
 
 //#define DEBUG
 
-#define DISTANCE_TO_WALL	50 //mm
+#define DISTANCE_TO_WALL	50
 #define DISTANCE_TO_ADJUST	30
 #define FOLLOW_WALL_SPEED	300
 #define SOUND_SEARCH_SPEED	200
@@ -53,8 +52,12 @@
 #define TARGET_LOST_T		5
 
 #define NO_WALL_T		80
-#define SOUND_DIR_T		15
+#define SOUND_DIR_T		25
 #define SOUND_DIR_RED_T		5
+#define SOUND_DIR_FAR		60
+#define SOUND_DIR_FAR_T		2
+#define TARGET_NEAR_TOL		40
+#define STRONG_CHANGE_T		200
 
 #define COLOR_BLUE		0, 0, 128	//ARRIVED
 #define COLOR_GREEN		0, 128, 28	//SOUND SEACH
@@ -69,8 +72,7 @@
 #define COLOR_ORANG		128, 64, 0	//ADJUST_WALL
 #define COLOR_DORANG		128, 32, 0	//ADJUST_WALL
 #define COLOR_BLACK		0, 0, 0		//PICKED UP
-
-#define COLOR_DDORAN		128, 16, 0		//PICKED UP
+#define COLOR_DDORAN		128, 16, 0	//PICKED UP
 
 #define LED_T1			30
 #define LED_T2			75
@@ -78,6 +80,7 @@
 #define LED_T4			150
 
 static NAVIGATION_STATE_t navigation_state;
+static SOUND_SEARCH_STATE_t sound_search_state;
 static FOLLOW_WALL_STATE_t follow_wall_state;
 static TARGET_INSIGHT_STATE_t target_insight_state;
 static SENSOR_NAME_t wall_side;
@@ -93,12 +96,20 @@ static uint16_t target_spotted_c;
 static uint16_t target_lost_c;
 static uint16_t no_side_c;
 static uint16_t sound_dir_red_c;
+static uint16_t sound_dir_far_c;
 
 static uint16_t* distances;
 
 static int16_t l_speed;
 static int16_t r_speed;
+static int16_t l_l_speed;
+static int16_t l_r_speed;
 
+/*
+ * @brief		display an angle on the robot using the leds
+ *
+ * @param angle		angle to display
+ */
 void leds_angle(int16_t angle)
 {
 	if (angle > 0) {
@@ -146,10 +157,9 @@ void leds_angle(int16_t angle)
 	}
 }
 
-//essaye de se tourner vers le son
-//donc on a besoin d'un PID -> target proche de 0 et current phase +/-
-//si on est en dessous d'un threshold proche de 0 on entre en mode move formward.
-//si pas de son valide-> wait
+/*
+ * @brief		sound search using a P controller with the raw angle from the sound processing module
+ */
 void sound_search(void)
 {
 
@@ -197,10 +207,78 @@ void sound_search(void)
 	//navigation_state = N_MOVE_FORWARD;
 }
 
-//le robot avance en checkant si il y a un mur devant
-// si mur: il entre en mode align_wall
-//si N secondes se sont ecoulées il entre en mode sound search.
-// detection d'arrivee-> arrived
+/*
+ * @brief		set the state machine to it's initial state
+ */
+void sound_locate_init(void)
+{
+	navigation_state = N_SOUND_SEARCH;
+	sound_search_state = SS_LOCATE;
+}
+
+/*
+ * @brief		locate sound direction using the refined angle
+ */
+void sound_locate(void)
+{
+
+	if (get_new_refined()) {
+		sound_angle = get_refined_angle();
+		leds_angle(sound_angle);
+#ifdef DEBUG
+		chprintf((BaseSequentialStream *) &SD3, "got location %d \n", sound_angle);
+#endif
+		if (abs(sound_angle) < SOUND_DIR_T) {
+			l_speed = MOVE_SPEED;
+			r_speed = MOVE_SPEED;
+			navigation_state = N_MOVE_FORWARD;
+		} else {
+			left_motor_set_pos(0);
+			right_motor_set_pos(0);
+			sound_search_state = SS_ROTATE;
+		}
+
+	}
+}
+
+/*
+ * @brief		rotate the robot of the right ammount to face the sound
+ */
+void sound_rotate(void)
+{
+	int16_t current = abs(left_motor_get_pos());
+	int16_t target = HALF_TURN * abs(sound_angle) / 180;
+	int16_t error = current - target;
+	float kp = 10;
+	int16_t speed = kp * error;
+
+	if (speed > ROTATION_SPEED) {
+		speed = ROTATION_SPEED;
+	}
+	if (speed < -ROTATION_SPEED) {
+		speed = -ROTATION_SPEED;
+	}
+	if (sound_angle < 0) {
+		l_speed = -speed;
+		r_speed = speed;
+	} else {
+		l_speed = speed;
+		r_speed = -speed;
+	}
+
+	if (error == 0) {
+		sound_locate_init();
+	}
+
+#ifdef DEBUG
+	chprintf((BaseSequentialStream *) &SD3, "rotate sound %d, %d\n", left_motor_get_pos(), right_motor_get_pos());
+#endif
+
+}
+
+/*
+ * @brief		move forward, check if there is a wall and also check if the sound is still in front
+ */
 void move_forward(void)
 {
 #ifdef DEBUG
@@ -208,8 +286,8 @@ void move_forward(void)
 #endif
 
 	if (distances[S_FORWARD_LEFT] < NO_WALL_T || distances[S_FORWARD_RIGHT] < NO_WALL_T) {
-		l_speed = distances[S_FORWARD_RIGHT] * 5;
-		r_speed = distances[S_FORWARD_RIGHT] * 5;
+		l_speed = MOVE_SPEED / 2;
+		r_speed = MOVE_SPEED / 2;
 	}
 	if (distances[S_FORWARD_LEFT] < DISTANCE_TO_WALL || distances[S_FORWARD_RIGHT] < DISTANCE_TO_WALL) {
 		l_speed = 0;
@@ -223,10 +301,22 @@ void move_forward(void)
 		navigation_state = N_FOLLOW_WALL;
 		follow_wall_state = FW_ALIGN;
 	}
+	if (get_new_refined()) {
+		if (abs(get_sound_angle()) > SOUND_DIR_FAR) {
+			sound_dir_far_c++;
+			if (sound_dir_far_c > SOUND_DIR_FAR_T) {
+				sound_locate_init();
+				sound_dir_far_c = 0;
+			}
+		} else {
+			sound_dir_far_c = 0;
+		}
+	}
 }
 
-//le robot se tourne de 90deg droite ou gauche? event. selon les deux capteurs devant.
-//ensuite on entre en mode follow_wall
+/*
+ * @brief		align the robot with the wall in front using a P controller with the front IR sensors as input
+ */
 void align_wall(void)
 {
 	if (distances[S_FORWARD_RIGHT] > FAR && distances[S_FORWARD_LEFT] > FAR) {
@@ -238,7 +328,7 @@ void align_wall(void)
 		align_far_c++;
 		if (align_far_c > ALIGN_FAR_T) {
 			align_far_c = 0;
-			navigation_state = N_SOUND_SEARCH;
+			sound_locate_init();
 		}
 		return;
 	} else {
@@ -263,6 +353,9 @@ void align_wall(void)
 
 }
 
+/*
+ * @brief		ajust the distance to the wall in front using a P controller with the two front IR sensors
+ */
 void adjust_wall(void)
 {
 	if (distances[S_FORWARD_RIGHT] > FAR && distances[S_FORWARD_LEFT] > FAR) {
@@ -274,7 +367,7 @@ void adjust_wall(void)
 		dist_prob_c++;
 		if (dist_prob_c > DIST_PROB_T) {
 			dist_prob_c = 0;
-			navigation_state = N_SOUND_SEARCH;
+			sound_locate_init();
 		}
 		return;
 	} else {
@@ -302,6 +395,9 @@ void adjust_wall(void)
 
 }
 
+/*
+ * @brief		rotate the robot parallel to the wall (from a facing wall position)
+ */
 void rotate_90p(void)
 {
 	int16_t current = abs(left_motor_get_pos());
@@ -335,7 +431,7 @@ void rotate_90p(void)
 		} else {
 			no_side_c++;
 			if (no_side_c > NO_SIDE_T) {
-				navigation_state = N_SOUND_SEARCH;
+				sound_locate_init();
 				no_side_c = 0;
 			}
 		}
@@ -350,6 +446,9 @@ void rotate_90p(void)
 	}
 }
 
+/*
+ * @brief		rotate the robot perpendicular to the wall (from a parallel to wall position)
+ */
 void rotate_90s(void)
 {
 	int16_t current = abs(left_motor_get_pos());
@@ -382,9 +481,10 @@ void rotate_90s(void)
 	chprintf((BaseSequentialStream *) &SD3, "rotate senkrecht %d, %d\n", left_motor_get_pos(), right_motor_get_pos());
 #endif
 }
-// avance tout droit + correction directionnelle selon la distance sur le capteur droite ou gauche
-// variable "WALL_SIDE"
-//au meme temps on check le capteur avant: si mur devant -> turn around
+
+/*
+ * @brief		move forward along a wall whilst checking if the wall is at the right distance or dissapears (corner)
+ */
 void follow_wall(void)
 {
 	uint16_t front_dist = (distances[S_FORWARD_LEFT] + distances[S_FORWARD_RIGHT]) / 2;
@@ -397,10 +497,8 @@ void follow_wall(void)
 		if (end_of_wall_c > END_OF_WALL_T) {
 			l_speed = 0;
 			r_speed = 0;
-			left_motor_set_pos(0);
-			right_motor_set_pos(0);
 			end_of_wall_c = 0;
-			follow_wall_state = FW_ROTATE_S;
+			sound_locate_init();
 		}
 
 	} else {
@@ -436,7 +534,9 @@ void follow_wall(void)
 	}
 }
 
-//rotation 180deg + change la valeur de wall_side -> retourne a follow_wall
+/*
+ * @brief		turn the robot 180deg and start following the wall in the other direction
+ */
 void turn_around(void)
 {
 	int16_t current = abs(left_motor_get_pos());
@@ -471,7 +571,7 @@ void turn_around(void)
 		} else {
 			no_side_c++;
 			if (no_side_c > NO_SIDE_T) {
-				navigation_state = N_SOUND_SEARCH;
+				sound_locate_init();
 				no_side_c = 0;
 			}
 		}
@@ -486,12 +586,15 @@ void turn_around(void)
 	}
 }
 
+/*
+ * @brief		align the robot with the striped pattern using the image processing module results
+ */
 void align_target(void)
 {
 	if (!get_pattern_visible()) {
 		target_lost_c++;
 		if (target_lost_c > TARGET_LOST_T) {
-			navigation_state = N_SOUND_SEARCH;
+			sound_locate_init();
 			target_lost_c = 0;
 		}
 	} else {
@@ -499,7 +602,7 @@ void align_target(void)
 	}
 
 	int16_t target = 0;
-	int16_t current = get_pattern_center() - IMAGE_CENTER;
+	int16_t current = get_pattern_center() - get_image_center();
 	int16_t error = target - current;
 	float kp = 1;
 	int16_t speed = kp * error;
@@ -515,41 +618,86 @@ void align_target(void)
 	}
 }
 
+/*
+ * @brief		approach the detected target
+ */
 void approach_target(void)
 {
 #ifdef DEBUG
-	chprintf((BaseSequentialStream *) &SD3, "approaching target: %5d %5d err %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], get_pattern_center() - IMAGE_CENTER);
+	chprintf((BaseSequentialStream *) &SD3, "approaching target: %5d %5d err %d w %d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT], get_pattern_center() - IMAGE_CENTER, get_pattern_width());
 #endif
 	l_speed = APPROACH_TARGET_SPEED;
 	r_speed = APPROACH_TARGET_SPEED;
 
-	if (abs(get_pattern_center() - IMAGE_CENTER) > TI_ALIGN_TOL) {
+	if (abs(get_pattern_center() - get_image_center()) > TI_ALIGN_TOL) {
 		target_insight_state = TI_ALIGN;
+	}
+
+	if (get_pattern_width() > TARGET_NEAR_TOL) {
+		navigation_state = N_FINAL_APPROACH;
 	}
 
 	if (distances[S_FORWARD_LEFT] < DISTANCE_TO_WALL || distances[S_FORWARD_RIGHT] < DISTANCE_TO_WALL) {
 		l_speed = 0;
 		r_speed = 0;
-		navigation_state = N_ARRIVED;
+		if (distances[S_FORWARD_RIGHT] > distances[S_FORWARD_LEFT]) {
+			wall_side = S_LEFT;
+
+		} else {
+			wall_side = S_RIGHT;
+		}
+		navigation_state = N_FOLLOW_WALL;
+		follow_wall_state = FW_ALIGN;
 	}
 
 }
 
+/*
+ * @brief		uninterruptible approach of the target because it is not well detected when too close
+ */
+void final_approach(void)
+{
+	l_speed = APPROACH_TARGET_SPEED;
+	r_speed = APPROACH_TARGET_SPEED;
+	if (distances[S_FORWARD_LEFT] < DISTANCE_TO_WALL || distances[S_FORWARD_RIGHT] < DISTANCE_TO_WALL) {
+		l_speed = 0;
+		r_speed = 0;
+		navigation_state = N_ARRIVED;
+	}
+#ifdef DEBUG
+	chprintf((BaseSequentialStream *) &SD3, "final_approach!!!!\n");
+#endif
+}
+
+/*
+ * @brief		stop the motors
+ */
 void paused(void)
 {
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
 #ifdef DEBUG
-	chprintf((BaseSequentialStream *) &SD3, "paused\n");
+	//chprintf((BaseSequentialStream *) &SD3, "paused\n");
 #endif
 }
 
+/*
+ * @brief		send the computed speed to the motors and notify the pickup detector of violent speed changes
+ */
 void execute(void)
 {
+	if(abs(l_l_speed-l_speed)>STRONG_CHANGE_T || abs(l_r_speed-r_speed)>STRONG_CHANGE_T) {
+		strong_movement_expected();
+	}
 	left_motor_set_speed(l_speed);
 	right_motor_set_speed(r_speed);
+	l_l_speed = l_speed;
+	l_r_speed = r_speed;
 }
 
+/*
+ * @brief		do nothing when the robot is arrived at destination
+ */
 void arrived(void)
 {
 #ifdef DEBUG
@@ -557,6 +705,9 @@ void arrived(void)
 #endif
 }
 
+/*
+ * @brief		thread of the navigation system
+ */
 static THD_WORKING_AREA(waNavigator, 512);
 static THD_FUNCTION(Navigator, arg)
 {
@@ -579,7 +730,7 @@ static THD_FUNCTION(Navigator, arg)
 			set_body_led(1);
 		}
 
-		if (get_pattern_visible() && navigation_state != N_TARGET_INSIGHT) {
+		if (get_pattern_visible() && (navigation_state == N_SOUND_SEARCH || navigation_state == N_MOVE_FORWARD || (navigation_state == N_FOLLOW_WALL && (follow_wall_state == FW_ADJUST || follow_wall_state == FW_ALIGN)))) {
 			target_spotted_c++;
 			if (target_spotted_c > TARGET_SPOTTED_T) {
 #ifdef DEBUG
@@ -599,7 +750,14 @@ static THD_FUNCTION(Navigator, arg)
 				set_rgb_led(LED4, COLOR_DDORAN);
 				set_rgb_led(LED6, COLOR_DDORAN);
 				set_rgb_led(LED8, COLOR_DDORAN);
-				sound_search();
+				switch (sound_search_state) {
+					case SS_LOCATE:
+						sound_locate();
+						break;
+					case SS_ROTATE:
+						sound_rotate();
+						break;
+				}
 				break;
 			case N_MOVE_FORWARD:
 				clear_leds();
@@ -681,6 +839,13 @@ static THD_FUNCTION(Navigator, arg)
 
 				}
 				break;
+			case N_FINAL_APPROACH:
+				set_rgb_led(LED2, COLOR_BLUE);
+				set_rgb_led(LED4, COLOR_VIOLET);
+				set_rgb_led(LED6, COLOR_VIOLET);
+				set_rgb_led(LED8, COLOR_BLUE);
+				final_approach();
+				break;
 			case N_ARRIVED:
 				set_rgb_led(LED2, COLOR_BLUE);
 				set_rgb_led(LED4, COLOR_BLUE);
@@ -707,7 +872,7 @@ static THD_FUNCTION(Navigator, arg)
 
 void navigation_start(void)
 {
-	navigation_state = N_SOUND_SEARCH;
+	sound_locate_init();
 
 	chThdCreateStatic(waNavigator, sizeof(waNavigator), NORMALPRIO, Navigator, NULL);
 

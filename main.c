@@ -23,11 +23,13 @@
 #include <image_processing.h>
 #include <navigation.h>
 
-
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
 
+/*
+ * @brief		initialise the serial communication with the computer
+ */
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = { 115200, 0, 0, 0, };
@@ -37,7 +39,10 @@ static void serial_start(void)
 
 //debug tools
 
-
+/*
+ * @brief		main function
+ *
+ */
 int main(void)
 {
 
@@ -63,8 +68,6 @@ int main(void)
 
 	chprintf((BaseSequentialStream *) &SD3, "STARTUP\n");
 
-
-
 	//modules init
 	proximity_processing_start();
 
@@ -74,14 +77,9 @@ int main(void)
 
 	navigation_start();
 
-
-
+	//infinite loop
 	while (1) {
-//	    if(is_phase_ready()) {
-//		    chprintf((BaseSequentialStream *) &SD3, "H:phase: %1.3f, freq_i: %d\n", get_clean_phase(), get_index());
-//	    } else {
-//		    chprintf((BaseSequentialStream *) &SD3, "H:no phase\n");
-//	    }
+
 		chThdSleepMilliseconds(1000);
 	}
 

@@ -9,10 +9,12 @@ extern "C" {
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
+#include <leds.h>
 
 
 
-#define PROTEC(a, b, c)	if(!((a) < (b))) chSysHalt(c)
+//debug macro to search for memory leaks
+#define PROTEC(a, b, c)	if(!((a) < (b))) while(1) set_front_led(1)
 
 
 /** Robot wide IPC bus. */

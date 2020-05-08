@@ -9,17 +9,23 @@
 
 #include <pickup_detector.h>
 
-
 #define PERIOD_MS	100
 
-#define MAX_SAMPLES	5
+#define STEPS_TO_IGNORE	10
+
+#define MAX_SAMPLES	10
 
 #define FILTER		2
 #define PICKUP_THRESH	5000
+#define PICKUP_THRESH_Z	2000
 #define REST_THRESH	100
+#define PICKUP_THRESHL	8000
+#define PICKUP_THRESL_Z	5000
 
 #define INF_INT16 	32767
 #define MAX(a,b)	((a)>(b)?(a):(b))
+
+static uint16_t strong_mvt_c;
 
 static int16_t values_x[MAX_SAMPLES];
 static int16_t values_y[MAX_SAMPLES];
@@ -47,6 +53,14 @@ static uint8_t nb_samples;
 
 static PICKUP_DETECTOR_STATE_t pickup_detector_state;
 
+void strong_movement_expected(void)
+{
+	strong_mvt_c = STEPS_TO_IGNORE;
+}
+
+/*
+ * @brief		thread of the pickup detector
+ */
 static THD_WORKING_AREA(waPickupDetect, 256);
 static THD_FUNCTION(PickupDetect, arg)
 {
@@ -117,14 +131,26 @@ static THD_FUNCTION(PickupDetect, arg)
 			sum = x_pk + y_pk + z_pk;
 
 			//chprintf((BaseSequentialStream *) &SD3, "PD: (%d) | (%d) | (%d) | %d\n", x_pk, y_pk, z_pk, sum);
-
-			if (pickup_detector_state == PD_PICKED_UP) {
-				if (x_pk < REST_THRESH && y_pk < REST_THRESH && z_pk < REST_THRESH) {
-					pickup_detector_state = PD_RESTING;
-				}
+			if (strong_mvt_c > 0) {
+				strong_mvt_c--;
+				if (pickup_detector_state == PD_PICKED_UP) {
+									if (x_pk < REST_THRESH && y_pk < REST_THRESH && z_pk < REST_THRESH) {
+										pickup_detector_state = PD_RESTING;
+									}
+								} else {
+									if (x_pk > PICKUP_THRESH || y_pk > PICKUP_THRESH || z_pk > PICKUP_THRESH_Z) {
+										pickup_detector_state = PD_PICKED_UP;
+									}
+								}
 			} else {
-				if (x_pk > PICKUP_THRESH || y_pk > PICKUP_THRESH || z_pk > PICKUP_THRESH) {
-					pickup_detector_state = PD_PICKED_UP;
+				if (pickup_detector_state == PD_PICKED_UP) {
+					if (x_pk < REST_THRESH && y_pk < REST_THRESH && z_pk < REST_THRESH) {
+						pickup_detector_state = PD_RESTING;
+					}
+				} else {
+					if (x_pk > PICKUP_THRESHL || y_pk > PICKUP_THRESHL || z_pk > PICKUP_THRESL_Z) {
+						pickup_detector_state = PD_PICKED_UP;
+					}
 				}
 			}
 		}
