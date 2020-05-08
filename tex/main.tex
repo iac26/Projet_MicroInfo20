@@ -1,0 +1,224 @@
+\documentclass{rapport}
+\usepackage[utf8]{inputenc}
+
+\titre{Projet de Microinformatique}
+\soustitre{Sound Locator}
+\auteur{Timon Binder}{Iacopo Sprenger}
+\date{May 2020}
+
+
+\begin{document}
+
+\maketitre
+\tableofcontents
+\newpage
+\section{Introduction}
+
+Pour notre projet de Microinformatique, nous avons décidé de réaliser un robot qui peut naviguer un champ d'obstacles en direction d'une cible sonore et visuelle. La cible sera un haut-parleur entouré d'une feuille de papier sur laquelle sont imprimées des lignes noires horizontales. Le haut-parleur va émettre un sifflement aigu. 
+
+
+\section{Principe de fonctionnement}
+
+Notre programme est décomposé en modules. Chaque module va s'occuper d'acquérir, d'analyser et de rendre disponibles les données d'un capteur. Finalement le module de navigation va s'occuper de diriger les moteurs selon les données environnementales.
+
+\subsection{Modules d'analyse des capteurs}
+
+\subsubsection{Analyse du son}
+
+\fig{son_dir.png}{son_dir}{
+Graphe montrant l'évolution des différences de phases entre deux paires de micros et l'angle d'incidence du son calculé lorsque nous avons placé un haut-parleur émettant une sinusoïdale a 900hz d'abord a gauche du robot (0-100) puis devant (120-200) puis a droite (250-300) et finalement derrière (320-400).
+}{0.7\linewidth}{Phases et angles calculés a partir des micros de l'e-puck}
+
+
+
+La structure du module d'analyse du son est tirée du TP5. Cette fois on utilise la forme complexe de la FFT afin d'obtenir la phase des divers signaux a la fréquence maximale. Nous trouvons finalement l'angle d'incidence du son en faisant l'arc tangente du déphasage avant-arrière divisé par le déphasage droite-gauche. On peut voir dans la Figure \ref{son_dir} que les valeurs obtenues avec cette méthode sont approximativement correctes.\\
+Pour améliorer nos résultats nous orientons le robot avec la valeur d'angle médiane sur 50 samples. Cette méthode nous donne de bien meilleurs résultats. Cependant elle ne permet pas un ajustement temps réel de l'orientation du robot car celui-ci doit attendre que les 50 mesures soient terminées.
+
+
+
+\subsubsection{Analyse d'images}
+
+\figDeux{Capture.PNG}{image_detect.PNG}{image_detec}{
+Images prises avec la caméra de l'e-puck. On indique en violet le centre et en rose les extrémités du pattern calculés sur le robot. En vert, rouge et bleu on indique les flans et les colonnes du pattern calculés sur l'ordinateur avec le même algorithme que sur le robot pour aider au debug.
+}{0.7\linewidth}{Photos transmises depuis l'e-puck}
+
+
+La structure du module d'analyse d'image est tirée du TP4. Cette fois, on capture une photo noir-blanc a deux dimensions et on cherche un pattern rayé noir-blanc horizontal avec les lignes blanches deux fois plus larges que les lignes noires. Pour faire cela nous avons d'abord une fonction qui analyse une colonne de l'image et détermine si celle-ci appartient au pattern. Nous analysons les colonnes de l'image par dichotomie en partant du centre pour essayer de trouver l'emplacement grossier du pattern sur l'image. lorsque une colonne est trouvée on explore vers la droite et vers la gauche afin de trouver le début et la fin du pattern. Finalement, nous pouvons calculer le centre et la largeur du pattern pour la navigation.\\
+
+Nous ne savions initialement pas trop comment faire pour détecter un pattern, nous avons donc commencé par envoyer les images a l'ordinateur et développer l'algorithme de détection sur python avec la possibilité d'afficher des données de debug directement dur la photo. Une fois satisfait de notre algorithme, nous l'avons adapté et porté sur le robot. On a vérifié son fonctionnement en comparant les résultats de python et de l'e-puck comme on peut voir dans la Figure \ref{image_detec}.
+
+
+
+\subsubsection{Détecteur de distance}
+
+\fig{distances.png}{distanc}{Graphe montrant la distance réelle d'une feuille blanche au capteurs IR avant en fonction de la valeur retournée par le capteur. Nous avons ensuite extrapolé une fonction qui relie les mesures au monde réel afin d'obtenir des valeurs de distance linéaires.}{0.65\linewidth}{Ajustement de la distance réelle par rapport à la distance mesurée}
+
+Puisque nous utilisons les distances mesurées par les capteurs de proximité pour ajuster la position du robot avec des contrôleurs proportionnels, il est nécessaire que les valeurs mesurées suivent une fonction affine. Nous avons obtenu la relation présente dans la Figure \ref{distanc}. En plaçant une feuille blanche devant le robot a diverses distances connues tout en observant la sortie des capteurs. Afin d'éviter au processeur de devoir calculer une puissance étrange, nous avons approximé la distance aux capteurs par cette relation: $$distance\ [mm]=\frac{438.85}{\sqrt{valeur\ du\ capteur}}$$ 
+\\
+Le module de gestion des capteurs de proximité sert aussi a rejeter les mesures étranges qui apparaissent des fois.
+
+\subsubsection{Détecteur de pickup}
+Lors du développement de notre programme, nous avons eu parfois des bugs qui font rouler le robot n'importe'où. Afin de pouvoir tranquillement le ramasser et le brancher a l'ordinateur pour corriger le bug sans que les moteurs tournent a pleine vitesse, nous avons implémenté un module qui détecte si quelqu'un prend le robot dans sa main. Pour faire cela on calcule une moyenne de mesures de l'IMU et si la valeur maximale des mesures est suffisamment loin de la moyenne, c'est que le robot a été ramassé. Cela force la machine d'états finis principale dans l'état PAUSED.
+\subsection{Module de navigation}
+Le module de navigation est géré a l'aide d'une machine d'états finis (FSM). Les diverses étapes de la navigation du robot jusqu'à son objectif sont des états et certaines étapes complexes tels que le contournement d'un obstacle sont eux-mêmes gérés par une FSM.
+
+
+\subsubsection{Machine d'états finis principale}
+
+Le robot commence en mode \textt{SOUND SEARCH}, dans lequel il tente de s'orienter face au son. Une fois orienté il entre en mode \textt{MOVE FORWARD}, dans lequel il avance jusqu'à ce que la direction du son soit fausse, un obstacle se trouve devant lui ou que le pattern d'arrivée soit visible.\\
+Si le robot est dans l'état \texttt{FINAL APPROACH} il considère automatiquement le prochain obstacle rencontré comme l'arrivée. Cet état est nécessaire car le pattern n'est parfois pas détecté depuis trop proche et le robot le confond avec un obstacle a contourner. Ceci est dû au fait que pas assez de lignes sont visibles verticalement dans l'image.\\
+Il y a encore l'état \texttt{PAUSED} qui est déclenché lorsque le robot est soulevé, sa fonction est d'éteindre les moteurs. Le dernier état est \textt{ARRIVED}, qui comme son nom l'indique signifie que le robot est arrivé a destination et n'as plus rien a faire.
+\begin{figure}[ht]
+\centering
+ \textbf{Machine d'états finis principale}\par\medskip
+\begin{tikzpicture}
+\node[state, initial, fill=gray!15] (ss) {\begin{tabular}{c} SOUND \\ SEARCH \end{tabular}};
+
+\node[state, above right of=ss, fill=gray!15] (fw) {\begin{tabular}{c} FOLLOW \\ WALL \end{tabular}};
+\node[state, right of=ss, node distance=6cm] (mv) {\begin{tabular}{c} MOVE \\ FORWARD \end{tabular}};
+
+\node[state, below right of=ss, fill=gray!15] (ti) {\begin{tabular}{c} TARGET \\ IN SIGHT \end{tabular}};
+\node[state, right of=ti] (fa) {\begin{tabular}{c} FINAL \\ APPROACH \end{tabular}};
+\node[state, above right of=fa] (aa) {\begin{tabular}{c} ARRIVED \end{tabular}};
+
+\node[state, right of=fw, node distance=9cm] (pp) {\begin{tabular}{c} PAUSED \end{tabular}};
+
+\draw   
+(ss) edge[bend left=5, sloped, anchor=south] node{pattern visible} (ti)
+(ss) edge[bend left=5, above, sloped, anchor=south] node{dir. du son en face} (mv)
+(mv) edge[bend left=5, above, sloped, anchor=north] node{dir. du son pas en face} (ss)
+(mv) edge[right, sloped, anchor=south] node{obstacle trouvé} (fw)
+(mv) edge[right, sloped, anchor=south] node{pattern visible} (ti)
+(ti) edge[above, sloped, anchor=south] node{pattern assez proche} (fa)
+(fa) edge[above, sloped, anchor=south] node{obstacle trouvé} (aa)
+(fw) edge[above, sloped, anchor=south] node{obstacle disparu} (ss)
+(fw) edge[bend left=15, above, sloped, anchor=south] node{obstacle est le pattern} (aa)
+(ti) edge[bend left=5, above, sloped, anchor=north] node{pattern perdu} (ss)
+(ti) edge[bend right=60, looseness=2, above, sloped, anchor=south] node{obstacle trouvé} (fw);
+
+\end{tikzpicture}
+\caption{Graphe montrant les relations entres les différents états de la FSM principale. L'état PAUSED est forcé depuis n'importe quel état lorsque le robot détecte qu'il est ramassé. Les états plus foncés sont eux mêmes des machines d'états finis. SOUND SEARCH est l'état initial.}
+\label{machine etat}
+\end{figure}
+
+\subsubsection{Recherche du son}
+Pour la recherche du son, dont le graphe se trouve dans la Figure \ref{FSM_ss}, on commence par attendre le résultat du module d'analyse audio. Une fois le résultat disponible, on passe dans l'état \texttt{ROTATE} qui va tourner le robot face au son.
+Une fois le robot tourné, on retourne dans l'état \texttt{LOCATE} et on attend a nouveau. Ce retour en arrière permet de confirmer que la rotation ait fonctionné comme prévu et permet aussi de confirmer que la direction du son était correcte par une seconde mesure. \\ Tout au long du processus de localisation du son, il est possible que le pattern d'arrivée apparaisse, dans ce cas on a plus besoin du son et la machine d'états finis principale entre en mode \texttt{TARGET IN SIGHT}.
+
+
+\begin{figure}[!ht]
+\centering
+\textbf{Machine d'états finis de recherche du son}\par\medskip
+\begin{tikzpicture}
+\node[state, initial] (sl) {\begin{tabular}{c} LOCATE \end{tabular}};
+\node[state, above right of=sl, fill=gray!15, dashed] (ti) {\begin{tabular}{c} TARGET \\ IN SIGHT \end{tabular}};
+\node[state, below right of=ti] (sr) {\begin{tabular}{c} ROTATE \end{tabular}};
+\node[state, below right of=sl, dashed] (mv) {\begin{tabular}{c} MOVE \\ FORWARD \end{tabular}};
+
+\draw   
+(sl) edge[bend left=10, sloped, anchor=south] node{son detecté} (sr)
+(sr) edge[bend left=10, sloped, anchor=north] node{rotation terminée} (sl)
+(sl) edge[sloped, anchor=north] node{direction correcte} (mv)
+(sl) edge[sloped, anchor=south] node{pattern visible} (ti)
+(sr) edge[sloped, anchor=south] node{pattern visible} (ti)
+
+;
+
+\end{tikzpicture}
+\caption{Graphe montrant les relations entres les différents états de la FSM de recherche du son. Les états plus foncés sont eux mêmes des FSM et les états en traits-tillés sont les sorties de cette FSM. LOCATE est l'état initial.}
+\label{FSM_ss}
+\end{figure}
+
+
+
+\begin{figure}[!ht]
+\centering
+\textbf{Machine d'états finis de contournement d'obstacle}\par\medskip
+\begin{tikzpicture}
+\node[state] (ad) {\begin{tabular}{c} ADJUST \end{tabular}};
+\node[state, above right of=ad, fill=gray!15, dashed] (ss) {\begin{tabular}{c} SOUND \\ SEARCH \end{tabular}};
+\node[state, initial, above left of=ss] (al) {\begin{tabular}{c} ALIGN \end{tabular}};
+
+\node[state, right of=ad] (rp) {\begin{tabular}{c} ROTATE P \end{tabular}};
+
+
+\node[state, right of=ss] (ta) {\begin{tabular}{c} TURN \\ AROUND \end{tabular}};
+\node[state,  right of=ta] (ff) {\begin{tabular}{c} FOLLOW \end{tabular}};
+\node[state, right of=al] (rs) {\begin{tabular}{c} ROTATE S \end{tabular}};
+
+\node[state, left of=ss, node distance=5.5cm, dashed] (aa) {\begin{tabular}{c} ARRIVED \end{tabular}};
+
+
+
+\draw   
+(ad) edge[bend left=5, sloped, anchor=south] node{alignement pas bon} (al)
+(al) edge[bend left=5, sloped, anchor=south] node{alignement bon} (ad)
+(ad) edge[sloped, anchor=south] node{bonne distance} (rp)
+(rp) edge[bend right=20, sloped, anchor=north] node{rotation terminée} (ff)
+(ff) edge[bend right=20, sloped, anchor=south] node{mur trop loin/proche} (rs)
+(rs) edge[sloped, anchor=south] node{rotation terminée} (al)
+(ff) edge[bend left=5, sloped, anchor=north] node{obstacle devant} (ta)
+(ta) edge[bend left=5, sloped, anchor=south] node{rotation terminée} (ff)
+(al) edge[sloped, anchor=south] node{mur disparu} (ss)
+(ad) edge[sloped, anchor=south] node{mur disparu} (ss)
+(rp) edge[sloped, anchor=south] node{mur disparu} (ss)
+(ta) edge[sloped, anchor=south] node{mur disparu} (ss)
+(ff) edge[bend right=30, sloped, anchor=south] node{mur disparu} (ss)
+(al) edge[sloped, anchor=south] node{pattern visible} (aa)
+(ad) edge[sloped, anchor=north] node{pattern visible} (aa);
+
+\end{tikzpicture}
+\caption{Graphe montrant les relations entres les différents états de la FSM de contournement d'obstacles. Les états plus foncés sont eux mêmes des FSM et les états en traits-tillés sont les sorties de cette FSM. ALIGN est l'état initial.}
+\label{FSM_fw}
+\end{figure}
+
+\subsubsection{Contournement d'obstacle}
+L'idée initiale du contournement d'obstacles était d'orienter le robot parallèle a l'obstacle, puis d'avancer en le maintenant a distance constante jusqu'à la fin du mur. Cependant, notre robot a le capteur IR2 défectueux ce qui nous force a utiliser une autre approche.\\
+La nouvelle approche, dont le graphe se trouve dans la Figure \ref{FSM_fw} est de s'orienter perpendiculaire au mur a une certaine distance en utilisant les deux capteurs avant. Une fois perpendiculaire on tourne le robot de exactement 90 degrés et on avance en observant la distance au mur avec le capteur de coté. Si le mur est trop loin ou trop proche, on tourne le robot pour qu'il soit perpendiculaire au mur et on recommence l'alignement.\\
+Lorsque le robot suit un mur, si un obstacle se trouve devant lui, il va pivoter et repartir dans l'autre direction. Cette manoeuvre permet a notre robot de gérer un obstacle en "L".
+
+\subsubsection{Pattern d'arrivée visible}
+Dans la Figure \ref{FSM_ti} on peut voir le graphe de la machine d'états finis qui a le contrôle lorsque le pattern est détecté. On commence par aligner le robot avec le pattern. Ensuite on avance tout en observant si un obstacle est détecté par les capteurs de proximité. Une fois que le pattern apparaît suffisamment grand dans l'image, on suppose que le prochain obstacle détecté sera l'arrivée.
+
+
+\begin{figure}[!ht]
+\centering
+\textbf{Machine d'états finis de pattern visible}\par\medskip
+\begin{tikzpicture}
+\node[state, initial] (al) {\begin{tabular}{c} ALIGN \end{tabular}};
+\node[state, right of=al] (ap) {\begin{tabular}{c} APPROACH \end{tabular}};
+\node[state, above of=ap, dashed, fill=gray!15] (fw) {\begin{tabular}{c} FOLLOW \\ WALL \end{tabular}};
+\node[state, right of=ap, dashed] (fa) {\begin{tabular}{c} FINAL \\ APPROACH \end{tabular}};
+\node[state, above of=al, dashed, fill=gray!15] (ss) {\begin{tabular}{c} SOUND \\ SEARCH \end{tabular}};
+
+\draw   
+(al) edge[bend left=10, sloped, anchor=south] node{pattern centré} (ap)
+(ap) edge[bend left=10, sloped, anchor=north] node{pattern décentré} (al)
+(ap) edge[sloped, anchor=south] node{obstacle trouvé} (fw)
+(ap) edge[sloped, anchor=south] node{pattern assez proche} (fa)
+(al) edge[sloped, anchor=south] node{pattern disparu} (ss)
+;
+
+\end{tikzpicture}
+\caption{Graphe montrant les relations entres les différents états de la FSM d'alignement du pattern visible. Les états plus foncés sont eux mêmes des FSM et les états en traits-tillés sont les sorties de cette FSM. ALIGN est l'état initial.}
+\label{FSM_ti}
+\end{figure}
+
+
+\section{Résultats}
+\subsection{Analyse du son}
+Notre méthode d'utiliser les quatre microphones et la valeur médiane sur beaucoup d'échantillons, nous a permis de grandement améliorer nos résultats. Cependant, il reste encore des mesures incorrectes de temps a autre. Nous estimons que ces imprécisions viennent en grande partie de l'acoustique de la pièce dans laquelle nous travaillons car en allant dans le jardin de Iacopo, notre robot détecte l'angle juste a chaque fois. 
+
+\subsection{Analyse d'images}
+L'analyse d'images fonctionne très bien si la feuille rayée est bien illuminée. Lorsque vient le soir, il faut pointer une lampe sur la feuille pour que le robot la détecte.\\
+La détection du pattern fonctionne aussi étonnamment bien a plus grande distances (>1.5m) car on a un effet de battement sur le pattern rayé et il apparaît a la caméra comme des lignes plus épaisses.
+
+\subsection{Détecteur de pickup}
+Le résultat du détecteur de pickup est satisfaisant pour nous car ce n'est pas une fonctionnalité principale de notre projet, mais il serait possible de l'améliorer. Pour l'instant il faut ramasser le robot comme une brute pour l'activer. Nous devrions implémenter plus qu'un simple threshold car si on rend notre système plus simple maintenant, il détecte ses propres accélérations. Ce qui n'est pas souhaité.
+
+\section{Conclusion}
+
+\section{Références}
+
+
+\end{document}
