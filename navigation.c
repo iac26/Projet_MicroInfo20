@@ -165,6 +165,7 @@ void leds_angle(int16_t angle)
 
 /*
  * @brief		sound search using a P controller with the raw angle from the sound processing module
+ *
  */
 void sound_search(void)
 {
@@ -224,6 +225,7 @@ void sound_locate_init(void)
 
 /*
  * @brief		locate sound direction using the refined angle
+ *
  */
 void sound_locate(void)
 {
@@ -251,6 +253,7 @@ void sound_locate(void)
 
 /*
  * @brief		rotate the robot of the right ammount to face the sound
+ *
  */
 void sound_rotate(void)
 {

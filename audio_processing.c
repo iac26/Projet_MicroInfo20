@@ -1,3 +1,8 @@
+/*
+ * Audio processing module
+ * Author: Timon Binder
+ */
+
 #include "ch.h"
 #include "hal.h"
 #include <main.h>
