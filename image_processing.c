@@ -1,3 +1,8 @@
+/*
+ * Audio processing module
+ * Author: Iacopo Sprenger
+ */
+
 #include "ch.h"
 #include "hal.h"
 #include <main.h>

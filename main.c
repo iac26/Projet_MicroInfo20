@@ -19,7 +19,7 @@
 
 #include <audio_processing.h>
 #include <proximity_processing.h>
-#include <pickup_detector.h>
+//#include <pickup_detector.h>
 #include <image_processing.h>
 #include <navigation.h>
 
@@ -61,7 +61,7 @@ int main(void)
 	po8030_start();
 	motors_init();
 	proximity_start();
-	imu_start();
+	//imu_start();
 	spi_comm_start();
 	serial_start();
 	audio_processing_start();
@@ -71,7 +71,7 @@ int main(void)
 	//modules init
 	proximity_processing_start();
 
-	pickup_detector_start();
+	//pickup_detector_start();
 
 	image_processing_start();
 

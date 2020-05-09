@@ -1,3 +1,8 @@
+/*
+ * Navigation module
+ * Author: Iacopo Sprenger & Timon Binder
+ */
+
 #include "ch.h"
 #include "hal.h"
 #include <main.h>
@@ -8,7 +13,7 @@
 #include <leds.h>
 #include <motors.h>
 
-#include <pickup_detector.h>
+//#include <pickup_detector.h>
 #include <audio_processing.h>
 #include <image_processing.h>
 #include <proximity_processing.h>
@@ -57,7 +62,7 @@
 #define SOUND_DIR_FAR		60
 #define SOUND_DIR_FAR_T		2
 #define TARGET_NEAR_TOL		40
-#define STRONG_CHANGE_T		200
+#define STRONG_CHANGE_T		100
 
 #define COLOR_BLUE		0, 0, 128	//ARRIVED
 #define COLOR_GREEN		0, 128, 28	//SOUND SEACH
@@ -688,9 +693,6 @@ void paused(void)
  */
 void execute(void)
 {
-	if(abs(l_l_speed-l_speed)>STRONG_CHANGE_T || abs(l_r_speed-r_speed)>STRONG_CHANGE_T) {
-		strong_movement_expected();
-	}
 	left_motor_set_speed(l_speed);
 	right_motor_set_speed(r_speed);
 	l_l_speed = l_speed;
@@ -724,13 +726,13 @@ static THD_FUNCTION(Navigator, arg)
 	while (1) {
 		time = chVTGetSystemTime();
 
-		if (get_pd_state() == PD_PICKED_UP) {
-			paused();
-			set_body_led(0);
-			continue;
-		} else {
-			set_body_led(1);
-		}
+//		if (get_pd_state() == PD_PICKED_UP) {
+//			paused();
+//			set_body_led(0);
+//			continue;
+//		} else {
+//			set_body_led(1);
+//		}
 
 		if (get_pattern_visible() && (navigation_state == N_SOUND_SEARCH || navigation_state == N_MOVE_FORWARD)) {
 			target_spotted_c++;

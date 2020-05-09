@@ -12,10 +12,23 @@ typedef enum {
 	S_FORWARD_LEFT
 } SENSOR_NAME_t;
 
+/*
+ * @brief		start the proximity processing module
+ */
 void proximity_processing_start(void);
 
+/*
+ * @brief 		get the pointer to the raw results array
+ *
+ * @return 		pointer to the raw results array
+ */
 uint16_t * get_values_ptr(void);
 
+/*
+ * @brief 		get the pointer to the adjusted results array
+ *
+ * @return 		pointer to the adjusted results array
+ */
 uint16_t * get_distances_ptr(void);
 
 #endif

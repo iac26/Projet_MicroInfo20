@@ -19,8 +19,8 @@
 #define PICKUP_THRESH	6000
 #define PICKUP_THRESH_Z	3000
 #define REST_THRESH	100
-#define PICKUP_THRESHL	8000
-#define PICKUP_THRESL_Z	5000
+#define PICKUP_THRESHL	8500
+#define PICKUP_THRESL_Z	6000
 
 #define INF_INT16 	32767
 #define MAX(a,b)	((a)>(b)?(a):(b))

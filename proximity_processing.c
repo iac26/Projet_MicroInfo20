@@ -20,6 +20,12 @@
 static uint16_t distances[PROXIMITY_NB_CHANNELS]; //en mm
 static uint16_t valeurs[PROXIMITY_NB_CHANNELS];
 
+/*
+ * On aurait pu se passer de ce thread et juste retourner les valeurs modifiées des capteurs de distances.
+ * Mais on rejette parfois une mesure et donc on souhaiterais garder la mesure précédente pour avoir une
+ * mesure disponible en cas de lecture juste après un rejet.
+ */
+
 static THD_WORKING_AREA(waProximityProcessor, 256);
 static THD_FUNCTION(ProximityProcessor, arg)
 {

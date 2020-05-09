@@ -6,7 +6,7 @@ typedef enum {
 	N_SOUND_SEARCH,
 	N_MOVE_FORWARD,
 	N_FOLLOW_WALL,
-	N_PAUSED,
+	N_PAUSED,		//not used anymore
 	N_TARGET_INSIGHT,
 	N_FINAL_APPROACH,
 	N_ARRIVED
