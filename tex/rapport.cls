@@ -13,6 +13,8 @@
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
 
+\usepackage[nottoc]{tocbibind}
+
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
@@ -69,10 +71,14 @@
 \large{\@groupe}\par}%
 \vfill
 \includegraphics[width=15cm]{figures/cover.jpg}\par%
-\vspace{0.5cm}
+\small{\color{gray!50}Montage photo du robot qui effectue sa tache (Réalisé a partir d'une vidéo).}\\
+\vfill
 \large
 \@auteurA\\
+\vspace{0.5cm}
 \@auteurB\\
+\vfill
+{\color{gray!90 }Groupe 16}
 \vfill
 %Supervisé par \@assistant\ et \@prof\\ 
 \vfill
