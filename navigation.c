@@ -24,8 +24,8 @@
 #define DEBUG
 
 //parametres du contournement d'obstacles
-#define DISTANCE_TO_WALL	50
-#define DISTANCE_TO_ADJUST	30
+#define DISTANCE_TO_WALL	50	//mm
+#define DISTANCE_TO_ADJUST	30	//mm
 #define FOLLOW_WALL_SPEED	300
 #define SOUND_SEARCH_SPEED	200
 #define APPROACH_TARGET_SPEED	350
@@ -34,10 +34,10 @@
 #define TI_ALIGN_TOL		15
 #define ALIGN_TOL		3
 #define ADJUST_TOL		3
-#define DISTANCE_TO_WALL_TOL_F	30
-#define DISTANCE_TO_WALL_TOL_N	10
-#define FAR			200
-#define NO_WALL_T		80
+#define DISTANCE_TO_WALL_TOL_F	30	//mm
+#define DISTANCE_TO_WALL_TOL_N	10	//mm
+#define FAR			200	//mm
+#define NO_WALL_TOL		80	//mm
 #define DIST_PROB_T		10
 #define NO_SIDE_T		10
 #define END_OF_WALL_T		20
@@ -56,12 +56,12 @@
 //parametres de la detection d'image
 #define TARGET_SPOTTED_T	5
 #define TARGET_LOST_T		5
-#define TARGET_NEAR_TOL		40
+#define TARGET_NEAR_TOL		40	//mm
 
 //parametres de la detection du son
-#define SOUND_DIR_T		25
-#define SOUND_DIR_RED_T		5
-#define SOUND_DIR_FAR		60
+#define SOUND_DIR_TOL		25	//deg
+#define SOUND_DIR_T		5
+#define SOUND_DIR_FAR		60	//deg
 #define SOUND_DIR_FAR_T		2
 
 #define STRONG_CHANGE_T		100
@@ -82,10 +82,10 @@
 #define COLOR_BLACK		0, 0, 0
 #define COLOR_DDORAN		128, 16, 0
 
-#define LED_T1			30
-#define LED_T2			75
-#define LED_T3			105
-#define LED_T4			150
+#define LED_T1			30	//deg
+#define LED_T2			75	//deg
+#define LED_T3			105	//deg
+#define LED_T4			150	//deg
 
 static NAVIGATION_STATE_t navigation_state;
 static SOUND_SEARCH_STATE_t sound_search_state;
@@ -94,8 +94,9 @@ static TARGET_INSIGHT_STATE_t target_insight_state;
 static SENSOR_NAME_t wall_side;
 
 static int16_t sound_angle;
-
 static uint16_t wall_dist;
+
+//counters
 static uint16_t align_far_c;
 static uint16_t end_of_wall_c;
 static uint16_t correct_wall_c;
@@ -104,8 +105,9 @@ static uint16_t target_spotted_c;
 static uint16_t target_spotted_f_c;
 static uint16_t target_lost_c;
 static uint16_t no_side_c;
-static uint16_t sound_dir_red_c;
+static uint16_t sound_dir_c;
 static uint16_t sound_dir_far_c;
+
 
 static uint16_t* distances;
 
@@ -168,9 +170,10 @@ void leds_angle(int16_t angle)
 
 /*
  * @brief		sound search using a P controller with the raw angle from the sound processing module
+ * 			not used anymore
  *
  */
-void sound_search(void)
+void sound_search_old(void)
 {
 
 	sound_angle = get_sound_angle();
@@ -191,18 +194,18 @@ void sound_search(void)
 #ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "sound search: %d freq: %d\n", sound_angle, get_sound_freq());
 #endif
-		if (abs(error) < SOUND_DIR_T) {
+		if (abs(error) < SOUND_DIR_TOL) {
 			l_speed = 0;
 			r_speed = 0;
-			sound_dir_red_c++;
-			if (sound_dir_red_c > SOUND_DIR_RED_T) {
+			sound_dir_c++;
+			if (sound_dir_c > SOUND_DIR_T) {
 				l_speed = MOVE_SPEED;
 				r_speed = MOVE_SPEED;
 				navigation_state = N_MOVE_FORWARD;
-				sound_dir_red_c = 0;
+				sound_dir_c = 0;
 			}
 		} else {
-			sound_dir_red_c = 0;
+			sound_dir_c = 0;
 		}
 	} else {
 #ifdef DEBUG
@@ -212,9 +215,9 @@ void sound_search(void)
 		r_speed = 0;
 	}
 
-	//l_speed = MOVE_SPEED;
-	//r_speed = MOVE_SPEED;
-	//navigation_state = N_MOVE_FORWARD;
+	l_speed = MOVE_SPEED;
+	r_speed = MOVE_SPEED;
+	navigation_state = N_MOVE_FORWARD;
 }
 
 /*
@@ -241,7 +244,7 @@ void sound_locate(void)
 #ifdef DEBUG
 		chprintf((BaseSequentialStream *) &SD3, "got location %d \n", sound_angle);
 #endif
-		if (abs(sound_angle) < SOUND_DIR_T) {
+		if (abs(sound_angle) < SOUND_DIR_TOL) {
 			l_speed = MOVE_SPEED;
 			r_speed = MOVE_SPEED;
 			navigation_state = N_MOVE_FORWARD;
@@ -300,7 +303,7 @@ void move_forward(void)
 #endif
 
 	//on reduit la vitesse proche du mur
-	if (distances[S_FORWARD_LEFT] < NO_WALL_T || distances[S_FORWARD_RIGHT] < NO_WALL_T) {
+	if (distances[S_FORWARD_LEFT] < NO_WALL_TOL || distances[S_FORWARD_RIGHT] < NO_WALL_TOL) {
 		l_speed = MOVE_SPEED / 2;
 		r_speed = MOVE_SPEED / 2;
 	}
@@ -512,7 +515,7 @@ void follow_wall(void)
 	chprintf((BaseSequentialStream *) &SD3, "following wall%d: %d/%d f: %d\n", wall_side, distances[wall_side], wall_dist, front_dist);
 #endif
 
-	if (distances[wall_side] > NO_WALL_T) {
+	if (distances[wall_side] > NO_WALL_TOL) {
 		end_of_wall_c++;
 		//mur disparu->soundsearch
 		if (end_of_wall_c > END_OF_WALL_T) {
@@ -752,6 +755,7 @@ static THD_FUNCTION(Navigator, arg)
 //		}
 
 		if (get_pattern_visible() && (navigation_state == N_SOUND_SEARCH || navigation_state == N_MOVE_FORWARD)) {
+			//on entre en mode target in sight lorsque le pattern est visible sound search ou move forward
 			target_spotted_c++;
 			if (target_spotted_c > TARGET_SPOTTED_T) {
 #ifdef DEBUG
@@ -765,6 +769,7 @@ static THD_FUNCTION(Navigator, arg)
 		}
 
 		if (get_pattern_visible() && (navigation_state == N_FOLLOW_WALL && (follow_wall_state == FW_ADJUST || follow_wall_state == FW_ALIGN))) {
+			//on entre en mode arrived lorsque le pattern est visible sound search ou move forward
 			target_spotted_f_c++;
 			if (target_spotted_c > TARGET_SPOTTED_T) {
 #ifdef DEBUG
@@ -909,7 +914,7 @@ void navigation_start(void)
 {
 	sound_locate_init();
 
-	chThdCreateStatic(waNavigator, sizeof(waNavigator), NORMALPRIO, Navigator, NULL);
+	chThdCreateStatic(waNavigator, sizeof(waNavigator), NORMALPRIO + 1, Navigator, NULL);
 
 }
 
