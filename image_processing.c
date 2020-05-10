@@ -25,12 +25,11 @@
 #define CORNER_Y	20
 #define IX(x, y) 	((x) + WIDTH * (y))	//to access pixels stored line by line
 
+//parameters of the image detection
 #define EDGE_TOL  	40
 #define	PATTERN_TOL 	4
 #define	NB_TOL  	2
-
 #define MAX_EDGES	20
-
 #define MAX_SUB		16
 #define START_SUB	2
 #define SUB_FACTOR	2

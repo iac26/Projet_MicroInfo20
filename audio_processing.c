@@ -16,7 +16,7 @@
 
 //#define SEND_AUDIO
 
-//MAcros
+//Macros
 #define NB_SAMPLES 	50
 #define NO_PHASE_T	5
 
@@ -24,13 +24,12 @@
 #define CONTROL_THRESH	5
 #define FREQ_THRESH	5
 #define DET_THRESH	15000
+
+//utilities to access specific data
 #define RE(i)		(2*(i))
 #define IM(i) 		(2*(i)+1)
 #define MIC(i, m)	(4*(i)+(m))
-
 #define RAD2DEG(a)	(180/M_PI*(a))
-
-//semaphore
 
 
 static uint8_t finding_dir;
@@ -53,11 +52,10 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
+
 static float phase_dif_lr;
 static float phase_dif_fb;
 static uint8_t valid_phase;
-
-
 static uint16_t freq_i;
 static int16_t angle;
 
@@ -102,15 +100,18 @@ void detect_phase(void)
 
 	}
 	if (max > DET_THRESH) {
-
+		//phases
 		float phase_l = atan2(micLeft_cmplx_input[IM(ix)], micLeft_cmplx_input[RE(ix)]);
 		float phase_r = atan2(micRight_cmplx_input[IM(ix)], micRight_cmplx_input[RE(ix)]);
 		float phase_f = atan2(micFront_cmplx_input[IM(ix)], micFront_cmplx_input[RE(ix)]);
 		float phase_b = atan2(micBack_cmplx_input[IM(ix)], micBack_cmplx_input[RE(ix)]);
+		//phases diff
 		phase_dif_lr = modulo_cercle(phase_l - phase_r);
 		phase_dif_fb = modulo_cercle(phase_f - phase_b);
-		valid_phase = 1;
+		//angle
 		angle = RAD2DEG(atan2(phase_dif_lr, phase_dif_fb));
+
+		valid_phase = 1;
 		freq_i = ix;
 	} else {
 		valid_phase = 0;
@@ -127,11 +128,13 @@ void refine_dir(void)
 		directions[dir_i] = angle;
 		dir_i++;
 	} else if (dir_i >= NB_SAMPLES) {
+		//the middle of the sorted table is the median
 		refined_angle = (directions[NB_SAMPLES/2] + directions[NB_SAMPLES/2-1])/2;
 		refined_valid = 1;
 		new_refined = 1;
 		dir_i = 0;
 	} else {
+		//fill a sorted table with measurements
 		for (uint16_t i = 0; i < dir_i; i++) {
 			if (angle < directions[i]) {
 				for (uint16_t j = dir_i; j > i; j--) {
@@ -206,6 +209,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 	static volatile uint16_t data_index = 0;
 	//volatile uint16_t n_s_copy = num_samples;
 
+	//we fill our tables
 	while (1) {
 		PROTEC(RE(fft_index), 2*FFT_SIZE, "audioRE");
 		PROTEC(IM(fft_index), 2*FFT_SIZE, "audioIM");
@@ -227,14 +231,18 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 			need_to_break = 1;
 		}
 		if (4 * data_index >= num_samples) {
+			//all the data was put in the tables->return
 			data_index = 0;
 			return;
 		}
 		if (need_to_break) {
+			//the tables are full->break and compute FFTs
 			break;
 		}
 
 	}
+
+	//compute FFT and magnitude
 	doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
 	doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
 	doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
@@ -245,6 +253,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 	arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
 	arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
 
+	//find sound direction
 	detect_phase();
 	if (valid_phase) {
 		refine_dir();

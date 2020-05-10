@@ -3,6 +3,12 @@
  * Author: Iacopo Sprenger
  */
 
+/*
+ * We made this because it was practical to have the robot stop moving when
+ * picked up but we finally discard it because it had too many false
+ * positives when the robot starts moving on its own.
+ */
+
 #include "ch.h"
 #include "hal.h"
 #include <main.h>
@@ -98,7 +104,7 @@ static THD_FUNCTION(PickupDetect, arg)
 			x_avg = 0;
 			y_avg = 0;
 			z_avg = 0;
-
+			//find the max and min and average
 			for (uint8_t i = 0; i < MAX_SAMPLES; i++) {
 				if (values_x[i] > x_max) {
 					x_max = values_x[i];
@@ -129,6 +135,7 @@ static THD_FUNCTION(PickupDetect, arg)
 			z_avg /= nb_samples;
 			nb_samples = 0;
 
+			//compute the max distance to the average
 			x_pk = MAX(abs(x_avg - x_min), abs(x_avg - x_max));
 			y_pk = MAX(abs(y_avg - y_min), abs(y_avg - y_max));
 			z_pk = MAX(abs(z_avg - z_min), abs(z_avg - z_max));
@@ -136,17 +143,19 @@ static THD_FUNCTION(PickupDetect, arg)
 			sum = x_pk + y_pk + z_pk;
 
 			//chprintf((BaseSequentialStream *) &SD3, "PD: (%d) | (%d) | (%d) | %d\n", x_pk, y_pk, z_pk, sum);
+
+			//we use a "hysteresis" comparator to find the current state
 			if (strong_mvt_c > 0) {
 				strong_mvt_c--;
 				if (pickup_detector_state == PD_PICKED_UP) {
-									if (x_pk < REST_THRESH && y_pk < REST_THRESH && z_pk < REST_THRESH) {
-										pickup_detector_state = PD_RESTING;
-									}
-								} else {
-									if (x_pk > PICKUP_THRESH || y_pk > PICKUP_THRESH || z_pk > PICKUP_THRESH_Z) {
-										pickup_detector_state = PD_PICKED_UP;
-									}
-								}
+					if (x_pk < REST_THRESH && y_pk < REST_THRESH && z_pk < REST_THRESH) {
+						pickup_detector_state = PD_RESTING;
+					}
+				} else {
+					if (x_pk > PICKUP_THRESH || y_pk > PICKUP_THRESH || z_pk > PICKUP_THRESH_Z) {
+						pickup_detector_state = PD_PICKED_UP;
+					}
+				}
 			} else {
 				if (pickup_detector_state == PD_PICKED_UP) {
 					if (x_pk < REST_THRESH && y_pk < REST_THRESH && z_pk < REST_THRESH) {

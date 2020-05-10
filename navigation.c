@@ -19,12 +19,11 @@
 #include <proximity_processing.h>
 #include <navigation.h>
 
-
-
 #define PERIOD_MS 		100
 
 #define DEBUG
 
+//parametres du contournement d'obstacles
 #define DISTANCE_TO_WALL	50
 #define DISTANCE_TO_ADJUST	30
 #define FOLLOW_WALL_SPEED	300
@@ -38,7 +37,14 @@
 #define DISTANCE_TO_WALL_TOL_F	30
 #define DISTANCE_TO_WALL_TOL_N	10
 #define FAR			200
+#define NO_WALL_T		80
+#define DIST_PROB_T		10
+#define NO_SIDE_T		10
+#define END_OF_WALL_T		20
+#define CORRECT_WALL_T		5
+#define ALIGN_FAR_T		5
 
+// parametres de rotation
 #define ROBOT_RAD		(60/2)
 #define ROBOT_PERIM		(2*M_PI*ROBOT_RAD)
 #define WHEEL_PERIM		130
@@ -47,37 +53,34 @@
 #define QUART_TURN		(TURN/4)
 #define HALF_TURN		(TURN/2)
 
-#define DIST_PROB_T		10
-#define NO_SIDE_T		10
-#define END_OF_WALL_T		20
-#define CORRECT_WALL_T		5
-#define ALIGN_FAR_T		5
-
+//parametres de la detection d'image
 #define TARGET_SPOTTED_T	5
 #define TARGET_LOST_T		5
+#define TARGET_NEAR_TOL		40
 
-#define NO_WALL_T		80
+//parametres de la detection du son
 #define SOUND_DIR_T		25
 #define SOUND_DIR_RED_T		5
 #define SOUND_DIR_FAR		60
 #define SOUND_DIR_FAR_T		2
-#define TARGET_NEAR_TOL		40
+
 #define STRONG_CHANGE_T		100
 
+//parametres des leds
 #define COLOR_BLUE		0, 0, 128	//ARRIVED
-#define COLOR_GREEN		0, 128, 28	//SOUND SEACH
-#define COLOR_LBLUE		0, 128, 90	//SOUND SEACH
-#define COLOR_TURKOISE		0, 128, 90	//SOUND SEACH
+#define COLOR_GREEN		0, 128, 0	//SOUND LOCATE
+#define COLOR_LBLUE		0, 128, 90	//MOVE FORWARD
+#define COLOR_TURKOISE		0, 128, 25	//SOUND SEARCH
 #define COLOR_PINK		128, 0, 128	//ALIGN TARGET
 #define COLOR_VIOLET		64, 0, 128	//APPROACH TARGET
 #define COLOR_BORDO		128, 32, 0	//ALIGN WALL
-#define COLOR_RED		128, 0, 0	//MOVE
+#define COLOR_RED		128, 0, 0
 #define COLOR_YELLO		128, 128, 0	//FOLLOW_WALL
 #define COLOR_DYELO		128, 90, 0	//FOLLOW_WALL WALLSIDE
 #define COLOR_ORANG		128, 64, 0	//ADJUST_WALL
 #define COLOR_DORANG		128, 32, 0	//ADJUST_WALL
-#define COLOR_BLACK		0, 0, 0		//PICKED UP
-#define COLOR_DDORAN		128, 16, 0	//PICKED UP
+#define COLOR_BLACK		0, 0, 0
+#define COLOR_DDORAN		128, 16, 0
 
 #define LED_T1			30
 #define LED_T2			75
@@ -296,6 +299,7 @@ void move_forward(void)
 	chprintf((BaseSequentialStream *) &SD3, "moving  %5d %5d\n", distances[S_FORWARD_LEFT], distances[S_FORWARD_RIGHT]);
 #endif
 
+	//on reduit la vitesse proche du mur
 	if (distances[S_FORWARD_LEFT] < NO_WALL_T || distances[S_FORWARD_RIGHT] < NO_WALL_T) {
 		l_speed = MOVE_SPEED / 2;
 		r_speed = MOVE_SPEED / 2;
@@ -312,6 +316,7 @@ void move_forward(void)
 		navigation_state = N_FOLLOW_WALL;
 		follow_wall_state = FW_ALIGN;
 	}
+	//on verifie que l'angle du son ne soit pas trop loin (i.e. derriere le robot)
 	if (get_new_refined()) {
 		if (abs(get_sound_angle()) > SOUND_DIR_FAR) {
 			sound_dir_far_c++;
@@ -376,6 +381,7 @@ void adjust_wall(void)
 		chprintf((BaseSequentialStream *) &SD3, "ajust_wall: dist_prob\n");
 #endif
 		dist_prob_c++;
+		//mur disparu->soundsearch
 		if (dist_prob_c > DIST_PROB_T) {
 			dist_prob_c = 0;
 			sound_locate_init();
@@ -397,9 +403,11 @@ void adjust_wall(void)
 	if (abs(error) < ALIGN_TOL) {
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
+		//alignement et distance ok -> on tourne le robot pour suivre le mur
 		if (abs(distances[S_FORWARD_RIGHT] - distances[S_FORWARD_LEFT]) < ALIGN_TOL) {
 			follow_wall_state = FW_ROTATE_P;
 		} else {
+			//alignement pas ok -> on realigne
 			follow_wall_state = FW_ALIGN;
 		}
 	}
@@ -441,6 +449,7 @@ void rotate_90p(void)
 			no_side_c = 0;
 		} else {
 			no_side_c++;
+			//mur disparu->soundsearch
 			if (no_side_c > NO_SIDE_T) {
 				sound_locate_init();
 				no_side_c = 0;
@@ -505,6 +514,7 @@ void follow_wall(void)
 
 	if (distances[wall_side] > NO_WALL_T) {
 		end_of_wall_c++;
+		//mur disparu->soundsearch
 		if (end_of_wall_c > END_OF_WALL_T) {
 			l_speed = 0;
 			r_speed = 0;
@@ -580,6 +590,7 @@ void turn_around(void)
 			no_side_c = 0;
 		} else {
 			no_side_c++;
+			//mur disparu->soundsearch
 			if (no_side_c > NO_SIDE_T) {
 				sound_locate_init();
 				no_side_c = 0;
@@ -696,6 +707,9 @@ void paused(void)
  */
 void execute(void)
 {
+//	if (abs(l_l_speed - l_speed) > STRONG_CHANGE_T || abs(l_r_speed - r_speed) > STRONG_CHANGE_T) {
+//		strong_movement_expected();
+//	}
 	left_motor_set_speed(l_speed);
 	right_motor_set_speed(r_speed);
 	l_l_speed = l_speed;
@@ -764,25 +778,29 @@ static THD_FUNCTION(Navigator, arg)
 		switch (navigation_state) {
 			case N_SOUND_SEARCH:
 				clear_leds();
-				set_rgb_led(LED2, COLOR_DDORAN);
-				set_rgb_led(LED4, COLOR_DDORAN);
-				set_rgb_led(LED6, COLOR_DDORAN);
-				set_rgb_led(LED8, COLOR_DDORAN);
 				switch (sound_search_state) {
 					case SS_LOCATE:
+						set_rgb_led(LED2, COLOR_TURKOISE);
+						set_rgb_led(LED4, COLOR_TURKOISE);
+						set_rgb_led(LED6, COLOR_TURKOISE);
+						set_rgb_led(LED8, COLOR_TURKOISE);
 						sound_locate();
 						break;
 					case SS_ROTATE:
+						set_rgb_led(LED2, COLOR_GREEN);
+						set_rgb_led(LED4, COLOR_GREEN);
+						set_rgb_led(LED6, COLOR_GREEN);
+						set_rgb_led(LED8, COLOR_GREEN);
 						sound_rotate();
 						break;
 				}
 				break;
 			case N_MOVE_FORWARD:
 				clear_leds();
-				set_rgb_led(LED2, COLOR_TURKOISE);
-				set_rgb_led(LED4, COLOR_TURKOISE);
-				set_rgb_led(LED6, COLOR_TURKOISE);
-				set_rgb_led(LED8, COLOR_TURKOISE);
+				set_rgb_led(LED2, COLOR_LBLUE);
+				set_rgb_led(LED4, COLOR_LBLUE);
+				set_rgb_led(LED6, COLOR_LBLUE);
+				set_rgb_led(LED8, COLOR_LBLUE);
 				move_forward();
 				break;
 			case N_FOLLOW_WALL:
@@ -880,6 +898,7 @@ static THD_FUNCTION(Navigator, arg)
 				break;
 		}
 
+		//on applique la vitesse des moteurs
 		execute();
 
 		chThdSleepUntilWindowed(time, time + MS2ST(PERIOD_MS));

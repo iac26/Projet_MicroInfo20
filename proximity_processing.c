@@ -25,6 +25,34 @@
 static uint16_t distances[PROXIMITY_NB_CHANNELS]; //en mm
 static uint16_t valeurs[PROXIMITY_NB_CHANNELS];
 
+static uint16_t lut_in_val[] = {12,15,17,19,22,27,32,40,50,60,70,90,110,140,190,255,390,660,1200,2500};
+static uint16_t lut_out_val[] = {100,95,90,85,80,75,70,65,60,55,50,45,40,35,30,25,20,15,10,5};
+
+
+/*
+ * @brief		lookup table to find distance values by linear
+ * 			interpolation we do not used it as the square root
+ * 			is quite fast on the cortex m4 with fpu
+ *
+ * @param val		value to convert
+ *
+ * @return		converted value
+ */
+uint16_t distance_lut(uint16_t val)
+{
+	if(val < lut_in_val[0]) {
+		return 200;
+	}
+	for(uint8_t i = 1; i < sizeof(lut_in_val)/sizeof(uint16_t); i++) {
+		if(val < lut_in_val[i]){
+			uint16_t a = val-lut_in_val[i-1];
+			uint16_t b = lut_in_val[i]-val;
+			return (a*lut_out_val[i]+b*lut_out_val[i-1])/(a+b);
+		}
+	}
+	return 0;
+}
+
 /*
  * On aurait pu se passer de ce thread et juste retourner les valeurs modifiées des capteurs de distances.
  * Mais on rejette parfois une mesure et donc on souhaiterais garder la mesure précédente pour avoir une
@@ -46,6 +74,7 @@ static THD_FUNCTION(ProximityProcessor, arg)
 //		chprintf((BaseSequentialStream *) &SD3, "time %d\n", ST2MS(time));
 #endif
 		for (uint8_t i = 0; i < PROXIMITY_NB_CHANNELS; i++) {
+			//on rejette les mesures avec des valeurs trop grandes  qui semblent etre des erreurs.
 			if (abs(get_calibrated_prox(i)) < WEIRD_THRESH) {
 				PROTEC(i, PROXIMITY_NB_CHANNELS, "prox1");
 				valeurs[i] = get_calibrated_prox(i);
